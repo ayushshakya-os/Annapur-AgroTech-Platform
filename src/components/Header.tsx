@@ -60,7 +60,9 @@ export default function Header() {
       <nav className="flex flex-row justify-between items-center w-full py-2 px-4 sm:px-8 border-b border-white gap-4 sm:gap-0">
         {/* Logo */}
         <div>
-          <Image src="/image/logo.png" width={130} height={50} alt="Logo" />
+          <Link href="/">
+            <Image src="/image/logo.png" width={130} height={50} alt="Logo" />
+          </Link>
         </div>
 
         {/* Nav Items */}
