@@ -75,7 +75,7 @@ export default function Market() {
   if (!hasHydrated) return null;
 
   return (
-    <section className="min-h-screen">
+    <section className="min-h-screen mt-[116px]">
       <Breadcrumb />
       <div className="top-0 z-20 p-4">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-4">

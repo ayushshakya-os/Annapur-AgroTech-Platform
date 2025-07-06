@@ -14,6 +14,7 @@ const labelMap: Record<string, string> = {
   "contact-us": "Contact Us",
   login: "Login",
   market: "Market",
+  "aboutus": "About Us",
 };
 
 const Breadcrumb = ({ productName }: Props) => {

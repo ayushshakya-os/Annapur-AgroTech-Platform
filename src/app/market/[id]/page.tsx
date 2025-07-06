@@ -46,10 +46,11 @@ export default async function ProductPage(props: {
   if (!product) return notFound();
 
   return (
-    <>
+    <div className="mt-[116px]">
+
       <Breadcrumb productName={product.name} />
       <ProductDetail product={product} />
       <ToggleDescription product={product} />
-    </>
+    </div>
   );
 }

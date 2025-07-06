@@ -8,7 +8,7 @@ export default function () {
   return (
     <>
       <Breadcrumb />
-      <div className="flex flex-col items-center justify-center pb-10">
+      <div className="flex flex-col items-center justify-center pb-10 mt-[116px]">
         <HeaderText text="Checkout your order details." text2="Order Details" />
       </div>
     </>
