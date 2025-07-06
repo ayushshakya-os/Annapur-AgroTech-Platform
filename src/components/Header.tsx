@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useCart } from "@/lib/context/useCart";
 import {
-  FaWhatsapp,
   FaPhoneAlt,
   FaFacebook,
   FaGithub,
@@ -13,7 +12,6 @@ import {
   FaLinkedin,
   FaMailBulk,
 } from "react-icons/fa";
-import Button from "./ui/Buttons/Button";
 import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
 export default function Header() {
