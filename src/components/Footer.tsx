@@ -65,11 +65,8 @@ export default function Footer() {
             <ul className="space-y-5 sm:text-xs md:text-sm ">
               <li className="flex flex-row gap-2 items-center">
                 <FaLeaf className="text-xs text-[#88B04B]" />
-                <Link 
-                href="/contact"
-                className= "hover:underline"
-                >
-                Contact Us
+                <Link href="/contact" className="hover:underline">
+                  Contact Us
                 </Link>
               </li>
               <li className="flex flex-row gap-2 items-center">
@@ -86,17 +83,14 @@ export default function Footer() {
               </li>
               <li className="flex flex-row gap-2 items-center">
                 <FaLeaf className="text-xs text-[#88B04B]" />
-                <Link 
-                href="/aboutus"
-                className= "hover:underline"
-                >
-                About Us
+                <Link href="/aboutus" className="hover:underline">
+                  About Us
                 </Link>
               </li>
             </ul>
           </div>
           {/* Get in Touch */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-[130px]">
             <h2
               className={`font-semibold sm:text-lg text-2xl mb-1 ${montserratAlt.className} text-white`}
             >
@@ -105,12 +99,9 @@ export default function Footer() {
             <div className="w-[90px] h-[2px] bg-[#88B04B] mb-3"></div>
             <div className="flex items-start gap-3 mb-5 md:text-sm sm:text-xs">
               <FaRegEnvelope className="text-xl mt-[2px]" />
-                  <Link 
-                href="/contact"
-                className= "hover:underline"
-                >
+              <Link href="/contact" className="hover:underline">
                 support@annapur.com
-                </Link>
+              </Link>
             </div>
             <div className="flex items-start gap-3 mb-5 md:text-sm sm:text-xs">
               <FiPhoneOutgoing className="text-xl mt-[2px]" />

@@ -33,7 +33,7 @@ const CartPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
+    <div className="max-w-5xl mx-auto py-8 px-4">
       <div className="flex flex-row items-start justify-between">
         <h1 className="text-2xl font-bold text-[#88B04B] mb-8">Your Cart</h1>
         <button

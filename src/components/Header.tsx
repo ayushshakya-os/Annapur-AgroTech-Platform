@@ -64,33 +64,52 @@ export default function Header() {
         </div>
 
         {/* Nav Items */}
-        <div className="sm:flex hidden flex-col sm:flex-row gap-4 md:gap-12 sm:gap-6 text-sm font-montserrat text-center">
+        <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
           <Link href="/">Home</Link>
           <Link href="/market">Market</Link>
-          <Link href="/">Services</Link>
+          <Link href="/">Bidding Portal</Link>
           <Link href="/aboutus">About Us</Link>
           <Link href="/contact">Contact Us</Link>
         </div>
 
         <div className="relative flex items-center gap-4">
           {/* Cart Icon */}
-          <Link href="/cart">
-            <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
+          <div className="hidden sm:block relative">
+            <Link href="/cart">
+              <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
+              {isClient && getTotalQuantity() > 0 && (
+                <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
+                  {badgeCount}
+                </span>
+              )}
+            </Link>
+          </div>
+
+          {/* Create Account */}
+          <div className="hidden sm:block">
+            <Link href="/create-account">
+              <FaUser className="text-2xl text-[#88B04B] sm:block hidden" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Hamburger Menu */}
+        <div className={`sm:hidden flex items-center gap-5 `}>
+          {/* Mobile Cart Icon */}
+          <Link href="/cart" className="relative">
+            <FaCartShopping className="text-2xl text-[#88B04B]" />
             {isClient && getTotalQuantity() > 0 && (
-              <span className="absolute -top-2 right-6 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
+              <span className="absolute -top-2 -right-2 bg-[#151515] text-[#88B04B] text-[14px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
                 {badgeCount}
               </span>
             )}
           </Link>
 
-          {/* Create Account */}
+          {/* Mobile User Icon */}
           <Link href="/create-account">
-            <FaUser className="text-2xl text-[#88B04B] sm:block hidden" />
+            <FaUser className="text-2xl text-[#88B04B]" />
           </Link>
-        </div>
 
-        {/* Hamburger Menu */}
-        <div className={`sm:hidden block `}>
           <button onClick={() => setIsOpen(!isOpen)}>
             <svg
               className="w-6 h-6"
@@ -107,6 +126,7 @@ export default function Header() {
               />
             </svg>
           </button>
+
           {/* Mobile Menu */}
           <div
             role="dialog"
@@ -137,12 +157,18 @@ export default function Header() {
                 <FaPhoneAlt size={12} />
                 <span>Call Us: +977 982-3821451</span>
               </div>
+              <div className="flex items-center gap-1 text-gray-700 text-[14px] font-montserrat mb-1 sm:mb-0">
+                <FaMailBulk size={12} />
+                <span>Mail Us: 3k6Mh@example.com</span>
+              </div>
               <div className="flex items-center justify-start gap-2">
-                <FaWhatsapp className="text-purple-500" />
-                <FaWhatsapp className="text-green-500" />
+                <FaFacebook className="text-[#3b5998]" />
+                <FaInstagram className="text-[#e4405f]" />
+                <FaGithub className="text-[#333]" />
+                <FaLinkedin className="text-[#0077b5]" />
               </div>
             </div>
-            <div className="flex flex-col gap-4 ">
+            <div className="flex flex-col gap-4 text-gray-700 text-[16px] font-montserrat">
               <Link
                 href="/"
                 className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
@@ -151,21 +177,21 @@ export default function Header() {
                 Home
               </Link>
               <Link
-                href="/"
+                href="/market"
                 className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
                 onClick={() => setIsOpen(false)}
               >
-                About Us
+                Market
               </Link>
-              <Link href="/">Get Support</Link>
+              <Link href="/">Bidding Portal</Link>
             </div>
 
-            <Link href="/create-account">
+            {/* <Link href="/create-account">
               <Button
                 text="Create Account"
                 className="text-white bg-gradient-to-r from-[#88B04B] to-[#4BAF47] opacity-80 hover:opacity-100 rounded-md px-4 py-2"
               />
-            </Link>
+            </Link> */}
           </div>
         </div>
       </nav>
