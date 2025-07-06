@@ -5,7 +5,7 @@ import Summary from "@/components/ui/Checkout/Summary";
 
 export default function () {
   return (
-    <div className="flex flex-col items-center justify-center pb-10">
+    <div className="flex flex-col items-center justify-center pb-10 mt-[116px]">
       <HeaderText text="Process your details securely." text2="Checkout" />
       <CheckoutForm />
       <Summary />

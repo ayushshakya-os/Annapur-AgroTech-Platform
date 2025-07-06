@@ -4,9 +4,9 @@ import React from "react";
 
 export default function ForgotPasswordPage() {
   return (
-    <>
+    <div className="mt-[116px]">
       <Breadcrumb />
       <ForgotPassword />
-    </>
+    </div>
   );
 }

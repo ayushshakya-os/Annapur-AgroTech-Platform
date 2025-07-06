@@ -14,7 +14,11 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
+
 export default function Header() {
+
+  const pathname =  usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -32,9 +36,9 @@ export default function Header() {
   const badgeCount = getUniqueItemCount();
 
   return (
-    <header className="w-full">
+    <header className="w-full fixed  h-[115px] top-0 left-0 z-50 bg-white">
       {/* Top Bar */}
-      <div className="bg-[#88B04B] text-sm sm:flex hidden flex-col sm:flex-row justify-between items-center  sm:px-16 py-2 border-b border-white">
+      <div className="bg-[#88B04B] w-[100%] text-sm sm:flex hidden flex-col sm:flex-row justify-between items-center  sm:px-16 py-2 border-b border-white">
         <div className="flex items-center text-white text-[14px] font-montserrat mb-1 md:mb-0 gap-5">
           <div className="flex items-center gap-2">
             <FaPhoneAlt size={12} />
@@ -55,7 +59,7 @@ export default function Header() {
       </div>
 
       {/* Main Header Bar */}
-      <nav className="flex flex-row justify-between items-center w-full py-2 px-4 sm:px-8 border-b border-white gap-4 sm:gap-0">
+      <nav className="flex flex-row justify-between bg-white items-center w-full py-2 px-4 sm:px-8 border-b border-white gap-4 sm:gap-0">
         {/* Logo */}
         <div>
           <Link href="/">
@@ -64,13 +68,39 @@ export default function Header() {
         </div>
 
         {/* Nav Items */}
-        <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
-          <Link href="/">Home</Link>
-          <Link href="/market">Market</Link>
-          <Link href="/">Bidding Portal</Link>
-          <Link href="/aboutus">About Us</Link>
-          <Link href="/contact">Contact Us</Link>
-        </div>
+    <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
+  <Link
+    href="/"
+    className={`${pathname === "/" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+  >
+    Home
+  </Link>
+  <Link
+    href="/market"
+    className={`${pathname === "/market" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+  >
+    Market
+  </Link>
+  <Link
+    href="/bidding"
+    className={`${pathname === "/bidding" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+  >
+    Bidding Portal
+  </Link>
+  <Link
+    href="/aboutus"
+    className={`${pathname === "/aboutus" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+  >
+    About Us
+  </Link>
+  <Link
+    href="/contact"
+    className={`${pathname === "/contact" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+  >
+    Contact Us
+  </Link>
+</div>
+
 
         <div className="relative flex items-center gap-4">
           {/* Cart Icon */}

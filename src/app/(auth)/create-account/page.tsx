@@ -4,9 +4,9 @@ import React from "react";
 
 export default function CreateAccountPage() {
   return (
-    <>
+    <div className="mt-[116px]">
       <Breadcrumb />
       <CreateAccount />
-    </>
+    </div>
   );
 }

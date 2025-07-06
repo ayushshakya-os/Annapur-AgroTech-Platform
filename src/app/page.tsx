@@ -6,9 +6,10 @@ import { Faq } from "@/components/ui/Home/Faq";
 import Testimonials from "@/components/ui/Home/Testimonials";
 import FeaturedProducts from "@/components/ui/Home/FeaturedProducts";
 import FillerBanner from "@/components/ui/Home/FillerBanner";
+import { DivideCircle } from "lucide";
 export default function Home() {
   return (
-    <>
+    <div className="mt-[116px]">
       {/* Components yesko muni*/}
       <Banner />
       <FeaturedProducts />
@@ -19,6 +20,6 @@ export default function Home() {
       <Testimonials />
       <Faq />
       {/* Components yesko maathi*/}
-    </>
+    </div>
   );
 }
