@@ -71,31 +71,31 @@ export default function Header() {
     <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
   <Link
     href="/"
-    className={`${pathname === "/" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+    className={`${pathname === "/" ? "text-[#88B04B] font-extrabold underline" : "text-black"} hover:text-[#88B04B]`}
   >
     Home
   </Link>
   <Link
     href="/market"
-    className={`${pathname === "/market" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+    className={`${pathname === "/market" ? "text-[#88B04B] font-extrabold underline" : "text-black"} hover:text-[#88B04B]`}
   >
     Market
   </Link>
   <Link
     href="/bidding"
-    className={`${pathname === "/bidding" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+    className={`${pathname === "/bidding" ? "text-[#88B04B] font-extrabold underline" : "text-black"} hover:text-[#88B04B]`}
   >
     Bidding Portal
   </Link>
   <Link
     href="/aboutus"
-    className={`${pathname === "/aboutus" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+    className={`${pathname === "/aboutus" ? "text-[#88B04B] font-extrabold underline" : "text-black"} hover:text-[#88B04B]`}
   >
     About Us
   </Link>
   <Link
     href="/contact"
-    className={`${pathname === "/contact" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
+    className={`${pathname === "/contact" ? "text-[#88B04B] font-extrabold underline" : "text-black"} hover:text-[#88B04B]`}
   >
     Contact Us
   </Link>
@@ -108,7 +108,7 @@ export default function Header() {
             <Link href="/cart">
               <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
               {isClient && getTotalQuantity() > 0 && (
-                <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
+              <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
                   {badgeCount}
                 </span>
               )}
