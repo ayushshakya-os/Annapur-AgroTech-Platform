@@ -10,7 +10,7 @@ interface ToastContentProps {
 const ToastContent = ({ primary, secondary }: ToastContentProps) => (
   <div className="flex flex-row gap-3 p-2 h-full w-full justify-start items-start">
     <div className="flex flex-col items-start justify-start">
-      <div className=" text-[#00C586] text-[16px] font-normal mb-1 font-dm-sans">
+      <div className=" text-[#88B04B] text-[16px] font-normal mb-1 font-dm-sans">
         {primary}
       </div>
       {secondary && (
