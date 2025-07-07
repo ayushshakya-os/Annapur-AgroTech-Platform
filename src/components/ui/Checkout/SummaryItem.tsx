@@ -31,7 +31,7 @@ export default function SummaryItem({ item }: Props) {
           <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
         </div>
       </div>
-      <div>
+      <div className="flex items-center gap-4 w-[120px] justify-between ">
         <button
           onClick={handleDelete}
           className="text-red-500 hover:text-red-700 transition"
@@ -39,8 +39,8 @@ export default function SummaryItem({ item }: Props) {
         >
           <Trash2 size={18} />
         </button>
+        <p className="font-semibold">Rs. {item.price * item.quantity}</p>
       </div>
-      <p className="font-semibold">Rs. {item.price * item.quantity}</p>
     </div>
   );
 }

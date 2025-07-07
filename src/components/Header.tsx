@@ -17,8 +17,7 @@ import { FaCartShopping, FaUser } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
-
-  const pathname =  usePathname();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -68,39 +67,54 @@ export default function Header() {
         </div>
 
         {/* Nav Items */}
-    <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
-  <Link
-    href="/"
-    className={`${pathname === "/" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
-  >
-    Home
-  </Link>
-  <Link
-    href="/market"
-    className={`${pathname === "/market" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
-  >
-    Market
-  </Link>
-  <Link
-    href="/bidding"
-    className={`${pathname === "/bidding" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
-  >
-    Bidding Portal
-  </Link>
-  <Link
-    href="/aboutus"
-    className={`${pathname === "/aboutus" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
-  >
-    About Us
-  </Link>
-  <Link
-    href="/contact"
-    className={`${pathname === "/contact" ? "text-[#88B04B] underline" : "text-black"} hover:text-[#88B04B]`}
-  >
-    Contact Us
-  </Link>
-</div>
-
+        <div className="sm:flex hidden flex-col sm:flex-row gap-2 md:gap-10 sm:gap-4 text-sm font-montserrat text-center">
+          <Link
+            href="/"
+            className={`${
+              pathname === "/" ? "text-[#88B04B] underline" : "text-black"
+            } hover:text-[#88B04B]`}
+          >
+            Home
+          </Link>
+          <Link
+            href="/market"
+            className={`${
+              pathname === "/market" ? "text-[#88B04B] underline" : "text-black"
+            } hover:text-[#88B04B]`}
+          >
+            Market
+          </Link>
+          <Link
+            href="/bidding"
+            className={`${
+              pathname === "/bidding"
+                ? "text-[#88B04B] underline"
+                : "text-black"
+            } hover:text-[#88B04B]`}
+          >
+            Bidding Portal
+          </Link>
+          <Link
+            href="/aboutus"
+            className={`${
+              pathname === "/aboutus"
+                ? "text-[#88B04B] underline"
+                : "text-black"
+            } hover:text-[#88B04B]`}
+          >
+            About Us
+          </Link>
+          <Link
+            href="/contact"
+            className={`${
+              pathname === "/contact"
+                ? "text-[#88B04B] underline"
+                : "text-black"
+            } hover:text-[#88B04B]`}
+          >
+            Contact Us
+          </Link>
+        </div>
 
         <div className="relative flex items-center gap-4">
           {/* Cart Icon */}
@@ -213,7 +227,27 @@ export default function Header() {
               >
                 Market
               </Link>
-              <Link href="/">Bidding Portal</Link>
+              <Link
+                href="/"
+                className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
+                onClick={() => setIsOpen(false)}
+              >
+                Bidding Portal
+              </Link>
+              <Link
+                href="/aboutus"
+                className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
+                onClick={() => setIsOpen(false)}
+              >
+                About Us
+              </Link>
+              <Link
+                href="/contact"
+                className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact Us
+              </Link>
             </div>
 
             {/* <Link href="/create-account">
