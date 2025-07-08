@@ -11,9 +11,11 @@ import TermsAndPrivacyModal from "@/components/TermsAndPrivacy";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAccountSchema } from "@/lib/validation/CreateAccount/CreateAccountSchema";
+import { simulateCreateUser } from "@/hooks/api/Account/simulateCreateAccount";
+import { showAuthToast } from "../../Toasts/ToastMessage";
+import { useRouter } from "next/navigation";
 
 type CreateAccountForm = {
-  userType: "farmer" | "buyer";
   fullName: string;
   email: string;
   phone: string;
@@ -35,6 +37,7 @@ export default function CreateAccount() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -55,11 +58,32 @@ export default function CreateAccount() {
 
   const onSubmit = (data: CreateAccountForm) => {
     console.log("Form submitted with data:", data);
+    const result = simulateCreateUser({
+      fullName: data.fullName,
+      email: data.email,
+      phone: data.phone,
+      password: data.password,
+    });
+
+    if (result.success) {
+      showAuthToast("signup");
+      // Clear form fields after successful signup
+      setValue("fullName", "");
+      setValue("email", "");
+      setValue("phone", "");
+      setValue("password", "");
+      setValue("confirmPassword", "");
+      setValue("termsChecked", true);
+      // Optionally redirect to login or home page
+      router.push("/login");
+    } else {
+      showAuthToast("error");
+    }
   };
 
-  const handleUserTypeSelect = (type: "farmer" | "buyer") => {
-    setValue("userType", type, { shouldValidate: true });
-  };
+  // const handleUserTypeSelect = (type: "farmer" | "buyer") => {
+  //   setValue("userType", type, { shouldValidate: true });
+  // };
 
   return (
     <div className="min-h-screen flex ">
@@ -103,7 +127,7 @@ export default function CreateAccount() {
           </div>
 
           {/* User Type Selection */}
-          <div className="mb-8">
+          {/* <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-700 mb-4">I am a</h3>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -174,7 +198,7 @@ export default function CreateAccount() {
                 </span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Signup Form */}
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>

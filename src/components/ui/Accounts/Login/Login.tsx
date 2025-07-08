@@ -7,7 +7,7 @@ import {
   loginSchema,
   LoginSchemaType,
 } from "@/lib/validation/LoginForm/LoginFormSchema";
-
+import { useRouter } from "next/navigation";
 import { LoginButton } from "@/components/ui/Buttons/LoginButton";
 import HeaderText from "@/components/HeaderText";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import TextInput from "@/components/TextInput";
 import PasswordInput from "@/components/PasswordInput";
 import CheckboxInput from "@/components/CheckboxInput";
 import { showAuthToast } from "../../Toasts/ToastMessage";
+import { simulateUserLogin } from "@/hooks/api/Account/simulateUserLogin";
 
 export default function Login() {
   const {
@@ -33,8 +34,20 @@ export default function Login() {
     },
   });
 
+  const router = useRouter();
+
   const onSubmit = (data: LoginSchemaType) => {
     console.log("Login submitted with data:", data);
+
+    const { email, password } = data;
+    const result = simulateUserLogin({ email, password });
+
+    if (result.success) {
+      showAuthToast("login");
+      router.push("/");
+    } else {
+      showAuthToast("error");
+    }
   };
   return (
     <div className="min-h-screen flex">
