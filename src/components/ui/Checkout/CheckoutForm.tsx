@@ -12,6 +12,8 @@ import ShippingAddress from "@/components/ui/Checkout/ShippingAddress";
 import Payment from "@/components/ui/Checkout/Payment";
 import { LoginButton } from "../Buttons/LoginButton";
 import { showAuthToast } from "../Toasts/ToastMessage";
+import { useCart } from "@/lib/context/useCart";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutForm() {
   const {
@@ -23,11 +25,43 @@ export default function CheckoutForm() {
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(CheckoutFormSchema),
   });
+  const { cart, clearCart } = useCart();
+  const router = useRouter();
 
   const onSubmit = (data: CheckoutFormData) => {
     console.log("Form submitted:", data);
+    if (cart.length === 0) {
+      showAuthToast("empty-cart");
+      return;
+    }
+
+    const newOrder = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      items: cart,
+      total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      customer: {
+        name: data.fullName || "",
+        email: data.email,
+        phone: data.phone,
+      },
+      shipping: {
+        address: data.address,
+        city: data.city,
+        state: data.state,
+      },
+      paymentMethod: data.paymentMethod,
+    };
+
+    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+    localStorage.setItem(
+      "orders",
+      JSON.stringify([newOrder, ...existingOrders])
+    );
+
+    clearCart();
     showAuthToast("order-success");
-    // Here you would typically handle the form submission, e.g., send data to an API
+    router.push(`/order-success?orderId=${newOrder.id}`);
   };
 
   return (
