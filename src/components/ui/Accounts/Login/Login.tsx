@@ -45,7 +45,6 @@ export default function Login() {
     if (result.success) {
       showAuthToast("login");
       router.push("/");
-      window.location.reload();
     } else {
       showAuthToast("error");
     }

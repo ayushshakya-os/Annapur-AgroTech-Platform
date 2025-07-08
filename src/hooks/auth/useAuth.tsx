@@ -15,6 +15,7 @@ interface AuthData {
 
 interface AuthContextType {
   user: AuthData | null;
+  setUser: (user: AuthData | null) => void;
   login: (
     email: string,
     password: string
@@ -61,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         guestLogin,
         logout,
