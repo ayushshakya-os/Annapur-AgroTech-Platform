@@ -44,7 +44,7 @@ export default function UserDropdown() {
   if (!auth || auth.isGuest) return null;
 
   return (
-    <div className="relative hidden sm:block" ref={dropdownRef}>
+    <div className="relative " ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="focus:outline-none flex items-center justify-center"

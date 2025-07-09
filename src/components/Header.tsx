@@ -143,7 +143,9 @@ export default function Header() {
           </div>
 
           {isClient && auth && !auth.isGuest ? (
-            <UserDropdown />
+            <div className="hidden sm:block relative">
+              <UserDropdown />
+            </div>
           ) : (
             // Show Create Account link for guests
             <div className="hidden sm:block">
@@ -167,9 +169,16 @@ export default function Header() {
           </Link>
 
           {/* Mobile User Icon */}
-          <Link href="/create-account">
-            <FaUser className="text-2xl text-[#88B04B]" />
-          </Link>
+          {isClient && auth && !auth.isGuest ? (
+            <UserDropdown />
+          ) : (
+            // Show Create Account link for guests
+            <div className="hidden sm:block">
+              <Link href="/create-account">
+                <FaUser className="text-2xl text-[#88B04B]" />
+              </Link>
+            </div>
+          )}
 
           <button onClick={() => setIsOpen(!isOpen)}>
             <svg
