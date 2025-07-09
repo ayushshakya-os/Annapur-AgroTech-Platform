@@ -8,6 +8,8 @@ import { Manrope } from "next/font/google";
 import { Covered_By_Your_Grace } from "next/font/google";
 import { CartProvider } from "@/lib/context/CartContext";
 import { ToastContainer } from "react-toastify";
+import { AuthProvider } from "@/hooks/auth/useAuth";
+import GuestAuthInitializer from "@/components/GuestLoginInitializer";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -35,48 +37,53 @@ export default function RootLayout({
     >
       <CartProvider>
         <body style={{ fontFamily: "var(--font-manrope), sans-serif" }}>
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={true}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            closeButton={true}
-            theme="light"
-            icon={({ type }) => {
-              return type === "success" ? (
-                <svg
-                  className="w-10 h-10"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="12" cy="12" r="12" className="fill-[#88B04B]" />
-                  <path
-                    d="M7 12L10.5 15.5L17 9"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : undefined;
-            }}
-          />
-          {/* Header */}
-          <Header />
+          <AuthProvider>
+            {/* AuthProvider wraps the entire application to provide authentication context */}
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={true}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              closeButton={true}
+              theme="light"
+              icon={({ type }) => {
+                return type === "success" ? (
+                  <svg
+                    className="w-10 h-10"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="12" cy="12" r="12" className="fill-[#88B04B]" />
+                    <path
+                      d="M7 12L10.5 15.5L17 9"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : undefined;
+              }}
+            />
 
-          {/* Main Content */}
-          {children}
+            {/* Header */}
+            <Header />
 
-          {/* Footer */}
-          <Footer />
+            {/* Main Content */}
+            <GuestAuthInitializer />
+            {children}
+
+            {/* Footer */}
+            <Footer />
+          </AuthProvider>
         </body>
       </CartProvider>
     </html>

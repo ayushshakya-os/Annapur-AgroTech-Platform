@@ -2,9 +2,6 @@ import * as z from "zod";
 
 export const createAccountSchema = z
   .object({
-    userType: z.enum(["farmer", "buyer"], {
-      errorMap: () => ({ message: "Please select user type" }),
-    }),
     fullName: z
       .string()
       .min(1, "Full name is required")

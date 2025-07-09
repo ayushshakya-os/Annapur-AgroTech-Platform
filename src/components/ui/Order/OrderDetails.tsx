@@ -185,7 +185,7 @@ export default function OrderDetailsPage() {
                 <div className="flex flex-col justify-center items-center text-center px-10 mb-5">
                   <div className="rounded-full bg-[#FFF8F8] p-2">
                     <Image
-                      src="/images/cancel.svg"
+                      src="/image/cancel.svg"
                       alt="cancel"
                       width={40}
                       height={40}
