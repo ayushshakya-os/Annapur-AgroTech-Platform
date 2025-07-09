@@ -10,6 +10,7 @@ export const useCart = () => {
     image?: string;
     name: string;
     price: number;
+    category: string;
     quantity: number;
   }) => {
     dispatch({ type: "ADD_ITEM", payload: item });

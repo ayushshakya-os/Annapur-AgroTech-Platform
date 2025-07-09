@@ -1,9 +1,18 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { FaCheckCircle } from "react-icons/fa";
 import Button from "../Buttons/Button";
 import FeaturedProducts from "./FeaturedSection";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/dist/client/components/navigation";
 export default function OrderSucess() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId");
+  const router = useRouter();
   return (
     <section className="flex flex-col pt-16 mt-10 justify-center items-center w-full">
       <div>
@@ -24,12 +33,13 @@ export default function OrderSucess() {
 
         {/* Order Redirection Buttons */}
         <div className="flex flex-row justify-center items-center pt-5">
-          <Link href="/order-history/order-details">
-            <Button
-              text="VIEW ORDER DETAILS"
-              className="bg-[#88B04B] text-white hover:bg-[#FFFFFF] hover:text-[#88B04B] border border-[#88B04B] transition-colors duration-300"
-            />
-          </Link>
+          <Button
+            text="VIEW ORDER DETAILS"
+            onClick={() => {
+              router.push(`/order-details/${orderId}`);
+            }}
+            className="bg-[#88B04B] text-white hover:bg-[#FFFFFF] hover:text-[#88B04B] border border-[#88B04B] transition-colors duration-300"
+          />
 
           <Link href="/" className="flex flex-row items-center ml-4">
             <Button
