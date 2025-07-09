@@ -37,7 +37,8 @@ export default function UserDropdown() {
 
   const handleLogout = () => {
     localStorage.removeItem("auth");
-    window.location.reload();
+    window.location.href = "/"; // Redirect to home page after logout
+    setOpen(false);
   };
 
   // Show only if user is logged in (not a guest)
@@ -62,12 +63,14 @@ export default function UserDropdown() {
         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-50">
           <Link
             href="/my-account"
+            onClick={() => setOpen(false)}
             className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
           >
             My Account
           </Link>
           <Link
             href="/order-history"
+            onClick={() => setOpen(false)}
             className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
           >
             Order History
