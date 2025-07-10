@@ -15,16 +15,29 @@ import {
 import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
+import UserDropdown from "./UserDropdown";
 
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [auth, setAuth] = useState<any>(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Check if the component is mounted on the client side
   useEffect(() => {
     setIsClient(true);
+    const storedAuth = localStorage.getItem("auth");
+    if (storedAuth) {
+      setAuth(JSON.parse(storedAuth));
+    }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    setAuth(null);
+    window.location.href = "/";
+  };
 
   // Disable body scroll when the mobile menu is open
   useEffect(() => {
@@ -129,12 +142,18 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Create Account */}
-          <div className="hidden sm:block">
-            <Link href="/create-account">
-              <FaUser className="text-2xl text-[#88B04B] sm:block hidden" />
-            </Link>
-          </div>
+          {isClient && auth && !auth.isGuest ? (
+            <div className="hidden sm:block relative">
+              <UserDropdown />
+            </div>
+          ) : (
+            // Show Create Account link for guests
+            <div className="hidden sm:block">
+              <Link href="/create-account">
+                <FaUser className="text-2xl text-[#88B04B]" />
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Hamburger Menu */}
@@ -150,9 +169,16 @@ export default function Header() {
           </Link>
 
           {/* Mobile User Icon */}
-          <Link href="/create-account">
-            <FaUser className="text-2xl text-[#88B04B]" />
-          </Link>
+          {isClient && auth && !auth.isGuest ? (
+            <UserDropdown />
+          ) : (
+            // Show Create Account link for guests
+            <div className="hidden sm:block">
+              <Link href="/create-account">
+                <FaUser className="text-2xl text-[#88B04B]" />
+              </Link>
+            </div>
+          )}
 
           <button onClick={() => setIsOpen(!isOpen)}>
             <svg

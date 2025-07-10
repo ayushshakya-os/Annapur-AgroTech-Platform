@@ -25,6 +25,7 @@ const ToastContent = ({ primary, secondary }: ToastContentProps) => (
 type ToastType =
   | "login"
   | "signup"
+  | "guestLogin"
   | "otp-sent"
   | "password-change"
   | "order-cancelled"
@@ -116,6 +117,14 @@ export const showAuthToast = (
             secondary="Please add items to your cart before proceeding."
           />
         );
+      case "guestLogin":
+        return (
+          <ToastContent
+            primary="Guest login activated!"
+            secondary="You can browse the site without logging in."
+          />
+        );
+
       default:
         const exhaustiveCheck: never = type;
         throw new Error(`Unhandled toast type: ${exhaustiveCheck}`);
