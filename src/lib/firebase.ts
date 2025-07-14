@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getMessaging, onMessage } from "firebase/messaging";
+import { getMessaging, Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCCpRwd8bIPgiVR-tgfxPr3iiacgDSI6g8",
@@ -15,5 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const messaging = getMessaging(app);
+export const messaging: Messaging | null =
+  typeof window !== "undefined" ? getMessaging(app) : null;
 export default app;

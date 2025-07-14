@@ -57,7 +57,7 @@ export default function UserDropdown() {
         className="focus:outline-none flex items-center justify-center"
       >
         <Image
-          src={auth?.photoURL || "/image/user.png"} // Replace with your own avatar image
+          src="/image/user.png"
           alt="User"
           width={30}
           height={30}
