@@ -16,6 +16,9 @@ import PasswordInput from "@/components/PasswordInput";
 import CheckboxInput from "@/components/CheckboxInput";
 import { showAuthToast } from "../../Toasts/ToastMessage";
 import { simulateUserLogin } from "@/hooks/api/Account/simulateUserLogin";
+import { FcGoogle } from "react-icons/fc";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function Login() {
   const {
@@ -46,6 +49,35 @@ export default function Login() {
       showAuthToast("login");
       router.push("/");
     } else {
+      showAuthToast("error");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userData = {
+        email: user.email || "",
+        firstName: user.displayName?.split(" ")[0] || "",
+        lastName: user.displayName?.split(" ")[1] || "",
+        isGuest: false,
+        token: await user.getIdToken(), // if you use it
+        username: user.displayName || user.email || "google_user",
+        photoURL: user.photoURL || "",
+        uid: user.uid,
+        provider: "google",
+      };
+
+      localStorage.setItem("auth", JSON.stringify(userData));
+
+      console.log("Google login successful:", result);
+      showAuthToast("login");
+      router.push("/");
+    } catch (error) {
+      console.error("Google login error:", error);
       showAuthToast("error");
     }
   };
@@ -138,6 +170,18 @@ export default function Login() {
                 Create Account
               </Link>
             </p>
+
+            {/* Google Login */}
+            <div className="mt-6">
+              <button
+                type="button"
+                className="w-full flex flex-row items-center justify-center gap-4 p-3 text-sm font-medium text-accent text-[#88B04B] bg-[#FFFFFF] border border-[#88B04B] hover:bg-gray-50 hover:text-[#88B04B] hover:border-[#88B04B]  rounded-lg transition-colors"
+                onClick={handleGoogleLogin}
+              >
+                <FcGoogle className="text-2xl text-gray-500 " />
+                Sign-In with Google
+              </button>
+            </div>
           </form>
         </div>
       </div>

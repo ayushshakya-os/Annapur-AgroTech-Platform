@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaUserCircle } from "react-icons/fa";
 import Button from "./ui/Buttons/Button";
 import { X } from "lucide-react";
+import { signOut } from "firebase/auth";
 
 export default function UserDropdown() {
   const [auth, setAuth] = useState<any>(null);
@@ -35,8 +35,14 @@ export default function UserDropdown() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("auth");
+
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Firebase logout error:", error);
+    }
     window.location.href = "/"; // Redirect to home page after logout
     setOpen(false);
   };
@@ -51,7 +57,7 @@ export default function UserDropdown() {
         className="focus:outline-none flex items-center justify-center"
       >
         <Image
-          src="/image/user.png" // Replace with your own avatar image
+          src={auth?.photoURL || "/image/user.png"} // Replace with your own avatar image
           alt="User"
           width={30}
           height={30}
