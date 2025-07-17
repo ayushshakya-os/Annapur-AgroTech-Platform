@@ -25,6 +25,7 @@ export const createAccountSchema = z
         "Password must be 8+ characters, include upper, lower, number and a symbol"
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
+    role: z.string().min(1, "Please select a role"),
     termsChecked: z.literal(true, {
       errorMap: () => ({ message: "You must accept the terms and conditions" }),
     }),

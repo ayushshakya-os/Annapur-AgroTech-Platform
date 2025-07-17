@@ -16,7 +16,7 @@ export function simulateUserLogin({
     return { success: false, message: "Invalid credentials" };
   }
 
-  const token = `guest_${crypto.randomUUID()}`;
+  const token = `user_${crypto.randomUUID()}`;
 
   const authData = {
     token,
@@ -24,6 +24,7 @@ export function simulateUserLogin({
     firstName: user.fullName.split(" ")[0],
     lastName: user.fullName.split(" ").slice(1).join(" ") || "",
     username: user.email.split("@")[0],
+    role: user.role || "buyer",
   };
 
   localStorage.setItem("auth", JSON.stringify(authData));
