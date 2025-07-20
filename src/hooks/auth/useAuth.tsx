@@ -11,6 +11,7 @@ interface AuthData {
   lastName: string;
   email: string;
   isGuest?: boolean;
+  role?: string; // Optional, can be used to determine user roles
 }
 
 interface AuthContextType {
@@ -21,6 +22,7 @@ interface AuthContextType {
     password: string
   ) => { success: boolean; message?: string };
   guestLogin: () => void;
+  handleGuestAccess?: (redirectUrl: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -53,6 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(guest);
   };
 
+  // Optional: Handle guest access by redirecting to a specific URL
+  const handleGuestAccess = (redirectUrl: string) => {
+    if (user?.isGuest) {
+      // Redirect to the specified URL
+      window.location.href = redirectUrl ? redirectUrl : "/login"; // Fallback to login if no URL is provided
+    }
+  };
   const logout = () => {
     localStorage.removeItem("auth");
     setUser(null);

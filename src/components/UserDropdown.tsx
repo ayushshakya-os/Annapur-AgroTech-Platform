@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaUserCircle } from "react-icons/fa";
 import Button from "./ui/Buttons/Button";
 import { X } from "lucide-react";
+import { signOut } from "firebase/auth";
 
 export default function UserDropdown() {
   const [auth, setAuth] = useState<any>(null);
@@ -35,22 +35,29 @@ export default function UserDropdown() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("auth");
-    window.location.reload();
+
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Firebase logout error:", error);
+    }
+    window.location.href = "/"; // Redirect to home page after logout
+    setOpen(false);
   };
 
   // Show only if user is logged in (not a guest)
   if (!auth || auth.isGuest) return null;
 
   return (
-    <div className="relative hidden sm:block" ref={dropdownRef}>
+    <div className="relative " ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="focus:outline-none flex items-center justify-center"
       >
         <Image
-          src="/image/user.png" // Replace with your own avatar image
+          src="/image/user.png"
           alt="User"
           width={30}
           height={30}
@@ -62,12 +69,14 @@ export default function UserDropdown() {
         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-50">
           <Link
             href="/my-account"
+            onClick={() => setOpen(false)}
             className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
           >
             My Account
           </Link>
           <Link
             href="/order-history"
+            onClick={() => setOpen(false)}
             className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
           >
             Order History
