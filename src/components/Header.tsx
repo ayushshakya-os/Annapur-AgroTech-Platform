@@ -105,9 +105,9 @@ export default function Header() {
             Market
           </Link>
           <Link
-            href="/bidding"
+            href="/bidding-portal"
             className={`${
-              pathname === "/bidding"
+              pathname === "/bidding-portal"
                 ? "text-[#88B04B] underline"
                 : "text-black"
             } hover:text-[#88B04B]`}
