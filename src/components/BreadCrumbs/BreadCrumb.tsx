@@ -14,7 +14,7 @@ const labelMap: Record<string, string> = {
   "contact-us": "Contact Us",
   login: "Login",
   market: "Market",
-  "aboutus": "About Us",
+  aboutus: "About Us",
 };
 
 const Breadcrumb = ({ productName }: Props) => {
@@ -59,7 +59,7 @@ const Breadcrumb = ({ productName }: Props) => {
             "/" + segments.slice(0, segments.indexOf(segment) + 1).join("/");
 
           const label =
-            isLast && segments.includes("market") && productName
+            isLast && productName
               ? productName
               : labelMap[segment] ||
                 segment

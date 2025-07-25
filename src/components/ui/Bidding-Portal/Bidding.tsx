@@ -1,11 +1,12 @@
 // components/Bidding-Portal/Bidding.tsx
 "use client";
 import React, { use, useEffect, useState } from "react";
-import Breadcrumb from "../BreadCrumbs/BreadCrumb";
-import { showAuthToast } from "../ui/Toasts/ToastMessage";
-import { showToast } from "../ui/Toasts/toast";
-import { Pagination } from "../ui/Market/Pagination";
+import Breadcrumb from "../../BreadCrumbs/BreadCrumb";
+import { showAuthToast } from "../Toasts/ToastMessage";
+import { showToast } from "../Toasts/toast";
+import { Pagination } from "../Market/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export type Product = {
   id: number;
@@ -111,15 +112,17 @@ const Bidding: React.FC<Props> = ({ products }) => {
   const totalPages = Math.ceil(limitedProducts.length / productsPerPage);
 
   return (
-    <div className="mt-[116px] ">
-      <Breadcrumb />
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-20 my-10">
-        {currentProducts.map((product) => (
-          <BiddingCard key={product.id} product={product} />
-        ))}
-      </div>
-      <div className="flex justify-center mt-6 space-x-2">
-        {/* {Array.from({ length: totalPages }, (_, i) => (
+    <>
+      <div>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-20 my-10">
+          {currentProducts.map((product) => (
+            <Link href={`/bidding-portal/${product.id}`} key={product.id}>
+              <BiddingCard product={product} />
+            </Link>
+          ))}
+        </div>
+        <div className="flex justify-center mt-6 space-x-2">
+          {/* {Array.from({ length: totalPages }, (_, i) => (
           <button
             key={i}
             onClick={() => setCurrentPage(i + 1)}
@@ -131,17 +134,18 @@ const Bidding: React.FC<Props> = ({ products }) => {
           </button>
         ))} */}
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => {
-            if (page < 1 || page > totalPages || page === currentPage) return;
-            setCurrentPage(page);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              if (page < 1 || page > totalPages || page === currentPage) return;
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
