@@ -50,18 +50,20 @@ const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
 
   return (
     <div className="w-full bg-white shadow-md rounded-lg p-4">
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-56 object-cover rounded-md"
-      />
-      <h2 className="text-xl font-semibold mt-3">{product.name}</h2>
-      <p className="text-sm text-gray-600">
-        {product.short_description || product.description}
-      </p>
-      <p className="mt-2 text-[#88B04B] font-bold">
-        Current Bid: Rs {currentBid}
-      </p>
+      <Link href={`/bidding-portal/${product.id}`} key={product.id}>
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-56 object-cover rounded-md"
+        />
+        <h2 className="text-xl font-semibold mt-3">{product.name}</h2>
+        <p className="text-sm text-gray-600">
+          {product.short_description || product.description}
+        </p>
+        <p className="mt-2 text-[#88B04B] font-bold">
+          Current Bid: Rs {currentBid}
+        </p>
+      </Link>
       <div className="flex mt-2 space-x-2">
         <input
           type="number"
@@ -116,9 +118,7 @@ const Bidding: React.FC<Props> = ({ products }) => {
       <div>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-20 my-10">
           {currentProducts.map((product) => (
-            <Link href={`/bidding-portal/${product.id}`} key={product.id}>
-              <BiddingCard product={product} />
-            </Link>
+            <BiddingCard product={product} key={product.id} />
           ))}
         </div>
         <div className="flex justify-center mt-6 space-x-2">
