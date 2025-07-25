@@ -1,9 +1,11 @@
 // components/Bidding-Portal/Bidding.tsx
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Breadcrumb from "../BreadCrumbs/BreadCrumb";
 import { showAuthToast } from "../ui/Toasts/ToastMessage";
 import { showToast } from "../ui/Toasts/toast";
+import { Pagination } from "../ui/Market/Pagination";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export type Product = {
   id: number;
@@ -79,11 +81,25 @@ const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
 };
 
 const Bidding: React.FC<Props> = ({ products }) => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const productsPerPage = 9;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const productsPerPage = 12;
 
-  // Limit to first 72 products for ~8 pages
-  const limitedProducts = products.slice(0, 72);
+  // Limit to first 96 products for ~8 pages
+  const limitedProducts = products.slice(0, 96);
+
+  // Get page from URL or default to 1
+  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+  const [currentPage, setCurrentPage] = useState<number>(
+    isNaN(initialPage) || initialPage < 1 ? 1 : initialPage
+  );
+
+  // Update the URL when page changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", currentPage.toString());
+    router.replace(`?${params.toString()}`);
+  }, [currentPage]);
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -103,7 +119,7 @@ const Bidding: React.FC<Props> = ({ products }) => {
         ))}
       </div>
       <div className="flex justify-center mt-6 space-x-2">
-        {Array.from({ length: totalPages }, (_, i) => (
+        {/* {Array.from({ length: totalPages }, (_, i) => (
           <button
             key={i}
             onClick={() => setCurrentPage(i + 1)}
@@ -113,7 +129,17 @@ const Bidding: React.FC<Props> = ({ products }) => {
           >
             {i + 1}
           </button>
-        ))}
+        ))} */}
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
       </div>
     </div>
   );
