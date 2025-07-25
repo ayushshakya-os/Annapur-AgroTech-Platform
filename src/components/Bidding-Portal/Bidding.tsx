@@ -1,0 +1,122 @@
+// components/Bidding-Portal/Bidding.tsx
+"use client";
+import React, { useState } from "react";
+import Breadcrumb from "../BreadCrumbs/BreadCrumb";
+import { showAuthToast } from "../ui/Toasts/ToastMessage";
+import { showToast } from "../ui/Toasts/toast";
+
+export type Product = {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  price: string;
+  short_description?: string;
+  category?: string;
+};
+
+type Props = {
+  products: Product[];
+};
+
+const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
+  const [currentBid, setCurrentBid] = useState<number>(
+    parseFloat(product.price) || 0
+  );
+  const [bidInput, setBidInput] = useState<string>("");
+
+  const handlePlaceBid = () => {
+    const newBid = parseFloat(bidInput);
+    if (isNaN(newBid)) {
+      showToast("error", "Please enter a valid bid amount.");
+      return;
+    }
+
+    if (newBid > currentBid) {
+      setCurrentBid(newBid);
+      showAuthToast("bid-placed");
+    } else {
+      showToast(
+        "error",
+        "Please enter a bid higher than the current highest bid."
+      );
+    }
+
+    setBidInput("");
+  };
+
+  return (
+    <div className="w-full bg-white shadow-md rounded-lg p-4">
+      <img
+        src={product.image}
+        alt={product.name}
+        className="w-full h-56 object-cover rounded-md"
+      />
+      <h2 className="text-xl font-semibold mt-3">{product.name}</h2>
+      <p className="text-sm text-gray-600">
+        {product.short_description || product.description}
+      </p>
+      <p className="mt-2 text-[#88B04B] font-bold">
+        Current Bid: Rs {currentBid}
+      </p>
+      <div className="flex mt-2 space-x-2">
+        <input
+          type="number"
+          value={bidInput}
+          onChange={(e) => setBidInput(e.target.value)}
+          placeholder="Enter your bid"
+          className="w-full border px-2 py-1 rounded"
+        />
+        <button
+          onClick={handlePlaceBid}
+          className="bg-[#88B04B] text-white px-4 py-1 rounded"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Bidding: React.FC<Props> = ({ products }) => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const productsPerPage = 9;
+
+  // Limit to first 72 products for ~8 pages
+  const limitedProducts = products.slice(0, 72);
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = limitedProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  const totalPages = Math.ceil(limitedProducts.length / productsPerPage);
+
+  return (
+    <div className="mt-[116px] ">
+      <Breadcrumb />
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-20 my-10">
+        {currentProducts.map((product) => (
+          <BiddingCard key={product.id} product={product} />
+        ))}
+      </div>
+      <div className="flex justify-center mt-6 space-x-2">
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentPage(i + 1)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === i + 1 ? "bg-[#88B04B] text-white" : "bg-white"
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Bidding;
