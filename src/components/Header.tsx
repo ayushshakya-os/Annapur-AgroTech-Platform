@@ -142,7 +142,7 @@ export default function Header() {
             <Link href="/cart">
               <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
               {isClient && getTotalQuantity() > 0 && (
-                <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
+              <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
                   {badgeCount}
                 </span>
               )}
