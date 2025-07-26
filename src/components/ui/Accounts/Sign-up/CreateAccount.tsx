@@ -21,6 +21,7 @@ type CreateAccountForm = {
   phone: string;
   password: string;
   confirmPassword: string;
+  role: string;
   termsChecked: true;
 };
 
@@ -63,6 +64,7 @@ export default function CreateAccount() {
       email: data.email,
       phone: data.phone,
       password: data.password,
+      role: data.role,
     });
 
     if (result.success) {
@@ -81,9 +83,9 @@ export default function CreateAccount() {
     }
   };
 
-  // const handleUserTypeSelect = (type: "farmer" | "buyer") => {
-  //   setValue("userType", type, { shouldValidate: true });
-  // };
+  const handleUserTypeSelect = (type: "farmer" | "buyer") => {
+    setValue("role", type, { shouldValidate: true });
+  };
 
   return (
     <div className="min-h-screen flex ">
@@ -127,7 +129,7 @@ export default function CreateAccount() {
           </div>
 
           {/* User Type Selection */}
-          {/* <div className="mb-8">
+          <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-700 mb-4">I am a</h3>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -135,7 +137,7 @@ export default function CreateAccount() {
                 onClick={() => handleUserTypeSelect("farmer")}
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all relative overflow-hidden
                                     ${
-                                      watch("userType") === "farmer"
+                                      watch("role") === "farmer"
                                         ? "border-[#88B04B] bg-[#88B04B]/10"
                                         : "border-gray-200 hover:border-[#88B04B]/50"
                                     }`}
@@ -148,14 +150,14 @@ export default function CreateAccount() {
               >
                 <FaSeedling
                   className={`w-8 h-8 ${
-                    watch("userType") === "farmer"
+                    watch("role") === "farmer"
                       ? "text-[#88B04B]"
                       : "text-gray-400"
                   }`}
                 />
                 <span
                   className={`font-medium ${
-                    watch("userType") === "farmer"
+                    watch("role") === "farmer"
                       ? "text-[#88B04B]"
                       : "text-gray-600"
                   }`}
@@ -169,7 +171,7 @@ export default function CreateAccount() {
                 onClick={() => handleUserTypeSelect("buyer")}
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all relative overflow-hidden
                                     ${
-                                      watch("userType") === "buyer"
+                                      watch("role") === "buyer"
                                         ? "border-[#88B04B] bg-[#88B04B]/10"
                                         : "border-gray-200 hover:border-[#88B04B]/50"
                                     }`}
@@ -182,14 +184,14 @@ export default function CreateAccount() {
               >
                 <FaUserTie
                   className={`w-8 h-8 ${
-                    watch("userType") === "buyer"
+                    watch("role") === "buyer"
                       ? "text-[#88B04B]"
                       : "text-gray-400"
                   }`}
                 />
                 <span
                   className={`font-medium ${
-                    watch("userType") === "buyer"
+                    watch("role") === "buyer"
                       ? "text-[#88B04B]"
                       : "text-gray-600"
                   }`}
@@ -198,7 +200,7 @@ export default function CreateAccount() {
                 </span>
               </button>
             </div>
-          </div> */}
+          </div>
 
           {/* Signup Form */}
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>

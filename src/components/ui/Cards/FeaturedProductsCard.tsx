@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 
 interface Product {
   id: number;
@@ -15,11 +16,17 @@ export default function FeaturedProductsCard({
 }: {
   product: Product;
 }) {
+  const [imageError, setImageError] = useState(false);
   return (
     <Link href={`/market/${product.id}`} className="block">
       <div className="bg-white shadow-md rounded-2xl overflow-hidden transition-transform hover:scale-105">
         <Image
-          src={product.image}
+          src={
+            !imageError && product.image?.trim().startsWith("/")
+              ? product.image
+              : "/placeholder.png"
+          }
+          onError={() => setImageError(true)}
           alt={product.name}
           width={400}
           height={300}

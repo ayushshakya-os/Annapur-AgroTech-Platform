@@ -4,6 +4,7 @@ export function simulateCreateUser(userData: {
   email: string;
   phone: string;
   password: string;
+  role: string;
 }) {
   const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
 

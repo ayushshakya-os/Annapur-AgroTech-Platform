@@ -19,6 +19,7 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleQuantityChange = (qty: number) => {
     setQuantity(qty);
@@ -34,6 +35,7 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
         image: product.image,
         name: product.name,
         price: Number(product.price),
+        category: product.category,
         quantity,
       });
       console.log("Item added to cart:", product.name, "Quantity:", quantity);
@@ -48,7 +50,12 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
     <div className="max-w-5xl ml-20 py-8 flex flex-row gap-10">
       <div className="">
         <Image
-          src={product.image}
+          src={
+            !imageError && product.image?.trim().startsWith("/")
+              ? product.image
+              : "/placeholder.png"
+          }
+          onError={() => setImageError(true)}
           alt={product.name}
           width={600}
           height={600}

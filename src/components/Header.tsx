@@ -16,6 +16,7 @@ import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import UserDropdown from "./UserDropdown";
+import { requestNotificationPermission } from "@/hooks/api/sendNotifications";
 
 export default function Header() {
   const pathname = usePathname();
@@ -29,7 +30,13 @@ export default function Header() {
     setIsClient(true);
     const storedAuth = localStorage.getItem("auth");
     if (storedAuth) {
-      setAuth(JSON.parse(storedAuth));
+      const parsedAuth = JSON.parse(storedAuth);
+      setAuth(parsedAuth);
+
+      // Request notification permission on client side
+      if (auth?.isGuest === false) {
+        requestNotificationPermission();
+      }
     }
   }, []);
 
@@ -98,9 +105,9 @@ export default function Header() {
             Market
           </Link>
           <Link
-            href="/bidding"
+            href="/bidding-portal"
             className={`${
-              pathname === "/bidding"
+              pathname === "/bidding-portal"
                 ? "text-[#88B04B] underline"
                 : "text-black"
             } hover:text-[#88B04B]`}
