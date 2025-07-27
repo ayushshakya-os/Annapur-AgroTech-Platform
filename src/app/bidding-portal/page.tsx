@@ -6,7 +6,7 @@ import allProducts from "@/data/market-products.json";
 
 const BiddingPage = () => {
   return (
-    <section className="min-h-screen mt-[116px]">
+    <section className="min-h-screen mt-[116px] mb-10">
       <Breadcrumb />
 
       <HeaderText text="Place Your Bid" text2="Bidding Portal" />

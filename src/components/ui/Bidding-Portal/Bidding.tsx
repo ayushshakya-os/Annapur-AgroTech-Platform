@@ -1,7 +1,6 @@
 // components/Bidding-Portal/Bidding.tsx
 "use client";
 import React, { use, useEffect, useState } from "react";
-import Breadcrumb from "../../BreadCrumbs/BreadCrumb";
 import { showAuthToast } from "../Toasts/ToastMessage";
 import { showToast } from "../Toasts/toast";
 import { Pagination } from "../Market/Pagination";

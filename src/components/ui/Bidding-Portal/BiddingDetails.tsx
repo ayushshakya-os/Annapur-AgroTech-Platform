@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { showToast } from "@/components/ui/Toasts/toast";
 import { showAuthToast } from "../Toasts/ToastMessage";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 export type Product = {
   id: number;
@@ -19,6 +20,7 @@ type Bid = { user: string; amount: number; time: string };
 const BiddingDetail = ({ product }: { product: Product }) => {
   const [bids, setBids] = useState<Bid[]>([]);
   const [bidInput, setBidInput] = useState("");
+  const { user } = useAuth();
 
   const currentBid =
     bids.length > 0 ? bids[0].amount : parseFloat(product.price);
@@ -31,7 +33,7 @@ const BiddingDetail = ({ product }: { product: Product }) => {
     }
 
     const newBidEntry: Bid = {
-      user: "Guest", // Or pull from auth state
+      user: user?.firstName || "Guest",
       amount: newBid,
       time: new Date().toLocaleString(),
     };

@@ -1,15 +1,23 @@
-// app/bidding/[id]/page.tsx
 import { notFound } from "next/navigation";
-import allProducts from "@/data/market-products.json";
 import BiddingDetail from "@/components/ui/Bidding-Portal/BiddingDetails";
 import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
+import Link from "next/link";
 
-export default function BiddingDetailPage({
-  params,
-}: {
+export async function generateStaticParams() {
+  const allProducts = (await import("@/data/market-products.json")).default;
+  return allProducts.map((product) => ({
+    id: product.id.toString(),
+  }));
+}
+
+export default async function BiddingDetailPage(props: {
   params: { id: string };
 }) {
-  const product = allProducts.find((p) => p.id === parseInt(params.id));
+  const { id: idParam } = await props.params;
+  const id = parseInt(idParam, 10);
+
+  const allProducts = (await import("@/data/market-products.json")).default;
+  const product = allProducts.find((p) => p.id === id);
 
   if (!product) return notFound();
 
@@ -17,6 +25,9 @@ export default function BiddingDetailPage({
     <section className="mt-[116px]">
       <Breadcrumb productName={product.name} />
       <BiddingDetail product={product} />
+      <Link href="/bidding-portal" className="text-[#88B04B]">
+        Back to Bidding Portal
+      </Link>
     </section>
   );
 }

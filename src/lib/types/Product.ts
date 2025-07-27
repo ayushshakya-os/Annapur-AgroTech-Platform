@@ -7,4 +7,6 @@ export interface Product {
   short_description: string;
   description?: string;
   quantity?: number;
+  farmerId?: number;
+  farmerName?: string;
 }

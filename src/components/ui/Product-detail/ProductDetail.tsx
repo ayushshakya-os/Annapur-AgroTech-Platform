@@ -75,6 +75,12 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
             {product.category}
           </span>{" "}
         </p>
+        <p className="text-[#88B04B] font-semibold mb-4">
+          Listed By:{" "}
+          <span className="font-semibold text-[#151515]">
+            {product.farmerName || "Unknown Farmer"}
+          </span>{" "}
+        </p>
         <p className="text-lg font-semibold text-[#88B04B] mb-4">
           Price: <span className="text-[#151515]">NPR {product.price}</span> /kg
         </p>
