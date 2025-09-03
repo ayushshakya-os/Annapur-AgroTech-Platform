@@ -1,92 +1,143 @@
-"use client";
+import { useState } from "react";
+import AxiosWrapper from "../api/AxiosWrapper";
 
-import { useEffect, useState, createContext, useContext } from "react";
-import { simulateUserLogin } from "@/hooks/api/Account/simulateUserLogin";
-import { simulateGuestLogin } from "@/hooks/api/Account/simulateGuestLogin";
-
-interface AuthData {
-  token: string;
-  username: string;
-  firstName: string;
-  lastName: string;
+interface AuthUser {
   email: string;
-  isGuest?: boolean;
-  role?: string; // Optional, can be used to determine user roles
+  fullName: string;
+  role?: string;
+  phone?: string;
 }
 
-interface AuthContextType {
-  user: AuthData | null;
-  setUser: (user: AuthData | null) => void;
-  login: (
-    email: string,
-    password: string
-  ) => { success: boolean; message?: string };
-  guestLogin: () => void;
-  handleGuestAccess?: (redirectUrl: string) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
+interface AuthStorage {
+  token: string;
+  user: AuthUser;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface RegisterData {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  role: string;
+  termsChecked: boolean;
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<AuthData | null>(null);
+interface LoginData {
+  email: string;
+  password: string;
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem("auth");
-    if (stored) {
-      setUser(JSON.parse(stored));
+const getStoredAuth = (): AuthStorage | null => {
+  const auth = localStorage.getItem("auth");
+  if (auth) {
+    try {
+      return JSON.parse(auth);
+    } catch {
+      return null;
     }
-  }, []);
+  }
+  return null;
+};
 
-  const login = (email: string, password: string) => {
-    const result = simulateUserLogin({ email, password });
+export function useAuth() {
+  const [auth, setAuth] = useState<AuthStorage | null>(getStoredAuth());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    if (result.success && result.data) {
-      localStorage.setItem("auth", JSON.stringify(result.data));
-      setUser(result.data);
-    }
-
-    return result;
+  // Save auth object to localStorage and state
+  const saveAuth = (token: string, user: AuthUser) => {
+    const authObj: AuthStorage = { token, user };
+    localStorage.setItem("auth", JSON.stringify(authObj));
+    setAuth(authObj);
   };
 
-  const guestLogin = () => {
-    const guest = simulateGuestLogin();
-    setUser(guest);
-  };
-
-  // Optional: Handle guest access by redirecting to a specific URL
-  const handleGuestAccess = (redirectUrl: string) => {
-    if (user?.isGuest) {
-      // Redirect to the specified URL
-      window.location.href = redirectUrl ? redirectUrl : "/login"; // Fallback to login if no URL is provided
+  // Register user (optionally with guest token)
+  const register = async (data: RegisterData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const guestAuth = getStoredAuth();
+      const res = await AxiosWrapper.post(
+        "/auth/register",
+        data,
+        guestAuth?.token
+          ? { headers: { Authorization: `Bearer ${guestAuth.token}` } }
+          : undefined
+      );
+      // Backend may not send phone in response, so use input value
+      const user: AuthUser = {
+        email: res.data.user.email,
+        fullName: res.data.user.fullName,
+        phone: data.phone,
+      };
+      saveAuth(res.data.token, user);
+      return { ...res.data, isGuest: true };
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Registration failed");
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Login user
+  const login = async (data: LoginData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await AxiosWrapper.post("/auth/login", data);
+      const user: AuthUser = {
+        email: res.data.user.email,
+        fullName: res.data.user.fullName,
+        role: res.data.user.role,
+      };
+      saveAuth(res.data.token, user);
+      return { ...res.data, isGuest: false };
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Login failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Guest login
+  const guestLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await AxiosWrapper.post("/auth/guest-login");
+      const user: AuthUser = {
+        email: res.data.user.email,
+        fullName: res.data.user.fullName,
+        role: res.data.user.role,
+      };
+      saveAuth(res.data.token, user);
+      return { ...res.data, isGuest: true };
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Guest login failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout
   const logout = () => {
     localStorage.removeItem("auth");
-    setUser(null);
+    setAuth(null);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        login,
-        guestLogin,
-        logout,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used inside an AuthProvider");
-  }
-  return context;
-};
+  return {
+    user: auth?.user,
+    token: auth?.token,
+    loading,
+    error,
+    login,
+    register,
+    guestLogin,
+    logout,
+    isAuthenticated: !!auth,
+  };
+}

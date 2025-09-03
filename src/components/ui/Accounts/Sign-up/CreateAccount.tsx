@@ -11,7 +11,7 @@ import TermsAndPrivacyModal from "@/components/TermsAndPrivacy";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAccountSchema } from "@/lib/validation/CreateAccount/CreateAccountSchema";
-import { simulateCreateUser } from "@/hooks/api/Account/simulateCreateAccount";
+import { useSignup } from "@/hooks/api/Account/useSignup";
 import { showAuthToast } from "../../Toasts/ToastMessage";
 import { useRouter } from "next/navigation";
 
@@ -40,6 +40,8 @@ export default function CreateAccount() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const router = useRouter();
 
+  const { signup, loading, error } = useSignup();
+
   const {
     register,
     handleSubmit,
@@ -59,15 +61,17 @@ export default function CreateAccount() {
 
   const onSubmit = (data: CreateAccountForm) => {
     console.log("Form submitted with data:", data);
-    const result = simulateCreateUser({
+    const result = signup({
       fullName: data.fullName,
       email: data.email,
       phone: data.phone,
       password: data.password,
+      confirmPassword: data.confirmPassword,
+      termsChecked: data.termsChecked,
       role: data.role,
     });
 
-    if (result.success) {
+    if (!error) {
       showAuthToast("signup");
       // Clear form fields after successful signup
       setValue("fullName", "");
