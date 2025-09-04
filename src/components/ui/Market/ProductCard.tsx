@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 interface Product {
-  id: number;
+  _id: string;
   name: string;
   category: string;
   price: string;
@@ -15,7 +15,7 @@ interface Product {
 export const ProductCard = ({ product }: { product: Product }) => {
   const [imageError, setImageError] = useState(false);
   return (
-    <Link href={`/market/${product.id}`} className="block">
+    <Link href={`/market/${product._id}`} className="block">
       <div className="h-full bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition">
         <Image
           src={

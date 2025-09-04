@@ -2,6 +2,7 @@ import { useState } from "react";
 import AxiosWrapper from "../api/AxiosWrapper";
 
 interface AuthUser {
+  id?: string;
   email: string;
   fullName: string;
   role?: string;
@@ -67,12 +68,13 @@ export function useAuth() {
       );
       // Backend may not send phone in response, so use input value
       const user: AuthUser = {
+        id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
         phone: data.phone,
       };
       saveAuth(res.data.token, user);
-      return { ...res.data, isGuest: true };
+      return { ...res.data };
     } catch (err: any) {
       setError(err.response?.data?.error || "Registration failed");
       throw err;
@@ -114,7 +116,7 @@ export function useAuth() {
         role: res.data.user.role,
       };
       saveAuth(res.data.token, user);
-      return { ...res.data, isGuest: true };
+      return { ...res.data };
     } catch (err: any) {
       setError(err.response?.data?.error || "Guest login failed");
       throw err;

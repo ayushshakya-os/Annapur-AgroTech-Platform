@@ -5,7 +5,7 @@ import { Filter } from "@/components/ui/Market/Filter";
 import { SearchBar } from "@/components/ui/Market/SearchBar";
 import { ProductCard } from "@/components/ui/Market/ProductCard";
 import { Pagination } from "@/components/ui/Market/Pagination";
-import products from "@/data/market-products.json";
+import { useAllProducts } from "@/hooks/api/Market/useGetProducts";
 import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -13,6 +13,7 @@ const ITEMS_PER_PAGE = 12;
 const MAX_PRICE = 5000;
 
 export default function Market() {
+  const { data: products = [], isLoading, error } = useAllProducts();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -39,7 +40,7 @@ export default function Market() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    return products.filter((product: any) => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(query.toLowerCase());
@@ -51,7 +52,7 @@ export default function Market() {
         selectedCategory.includes(product.category);
       return matchesSearch && inPriceRange && inCategory;
     });
-  }, [query, selectedCategory, priceRange]);
+  }, [products, query, selectedCategory, priceRange]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -109,8 +110,8 @@ export default function Market() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentItems.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {currentItems.map((product: any) => (
+              <ProductCard key={product._id} product={product} />
             ))}
             {currentItems.length === 0 && (
               <div className="col-span-full text-center py-12">
