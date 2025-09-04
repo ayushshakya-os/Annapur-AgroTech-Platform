@@ -1,6 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { useCart } from "@/lib/context/useCart";
 import { useAuth } from "@/hooks/auth/useAuth";
 
 type QuantitySelectorProps = {
@@ -22,7 +21,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
 }) => {
   const { user } = useAuth();
   const userId = user?.id || "";
-  const { updateQuantity } = useCart(userId);
+  // const { updateQuantity } = useCart(userId);
   const [quantity, setQuantity] = useState(initial);
 
   // Keep external state in sync (when cart updates refetch)
@@ -36,7 +35,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
       setQuantity(newQty);
       onChange?.(newQty);
 
-      if (productId) updateQuantity(productId, newQty);
+      // if (productId) updateQuantity(productId, newQty);
     }
   };
 
@@ -46,7 +45,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
       setQuantity(newQty);
       onChange?.(newQty);
 
-      if (productId) updateQuantity(productId, newQty);
+      // if (productId) updateQuantity(productId, newQty);
     }
   };
   return (

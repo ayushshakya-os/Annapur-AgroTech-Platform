@@ -12,8 +12,10 @@ import ShippingAddress from "@/components/ui/Checkout/ShippingAddress";
 import Payment from "@/components/ui/Checkout/Payment";
 import { LoginButton } from "../Buttons/LoginButton";
 import { showAuthToast } from "../Toasts/ToastMessage";
-import { useCart } from "@/lib/context/useCart";
+import { useGetCart } from "@/hooks/api/Cart/useCart";
+import { useClearCart } from "@/hooks/api/Cart/useCart";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 export default function CheckoutForm() {
   const {
@@ -25,7 +27,10 @@ export default function CheckoutForm() {
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(CheckoutFormSchema),
   });
-  const { cart, clearCart } = useCart();
+  const { user } = useAuth();
+  const userId = user?.id || "current";
+  const { data: cart = [], refetch } = useGetCart("current");
+  const clearCart = useClearCart();
   const router = useRouter();
 
   const onSubmit = (data: CheckoutFormData) => {
@@ -39,7 +44,10 @@ export default function CheckoutForm() {
       id: Date.now().toString(),
       date: new Date().toISOString(),
       items: cart,
-      total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      total: cart.reduce(
+        (acc: any, item: any) => acc + item.price * item.quantity,
+        0
+      ),
       customer: {
         name: data.fullName || "",
         email: data.email,
@@ -59,7 +67,8 @@ export default function CheckoutForm() {
       JSON.stringify([newOrder, ...existingOrders])
     );
 
-    clearCart();
+    const clearCartResponse = clearCart.mutate(userId);
+
     showAuthToast("order-success");
     router.push(`/order-success?orderId=${newOrder.id}`);
   };

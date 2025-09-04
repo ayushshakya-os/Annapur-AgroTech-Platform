@@ -6,9 +6,9 @@ import { Product } from "@/lib/types/Product";
 import QuantitySelector from "./QuantitySelector";
 import AddToCartButton from "../Buttons/AddToCartButton";
 import BuyNowButton from "../Buttons/BuyNowButtons";
-import { useCart } from "@/lib/context/useCart";
-import { showAuthToast } from "../Toasts/ToastMessage";
 import { useAuth } from "@/hooks/auth/useAuth";
+import { useAddToCart } from "@/hooks/api/Cart/useAddToCart";
+import { showToast } from "../Toasts/toast";
 
 interface Props {
   product: Product;
@@ -17,26 +17,36 @@ interface Props {
 const ProductDetail: React.FC<Props> = ({ product }) => {
   const { user } = useAuth();
   const userId = user?.id || "";
-  const { addItem } = useCart(userId);
   const [quantity, setQuantity] = useState(1);
-  const [isAdding, setIsAdding] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const { mutate: addToCart, isPending } = useAddToCart();
 
   const handleQuantityChange = (qty: number) => {
     setQuantity(qty);
   };
 
-  const handleAddToCart = async () => {
-    setIsAdding(true);
-    try {
-      // ✅ Only send productId + quantity
-      await addItem(String(product.id), quantity);
-      showAuthToast("cart-added");
-    } catch (error) {
-      console.error("Error adding item to cart:", error);
-    } finally {
-      setIsAdding(false);
+  const handleAddToCart = () => {
+    if (!userId) {
+      showToast("error", "Please log in to add items to your cart.");
+      return;
     }
+
+    addToCart(
+      {
+        userId: userId,
+        productId: product._id,
+        quantity,
+      },
+      {
+        onSuccess: () => {
+          showToast("success", "Product added to cart!");
+        },
+        onError: () => {
+          showToast("error", "Failed to add product to cart.");
+        },
+      }
+    );
   };
 
   return (

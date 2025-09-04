@@ -2,6 +2,7 @@ import { useState } from "react";
 import AxiosWrapper from "../../api/AxiosWrapper";
 
 interface AuthUser {
+  id?: string;
   email: string;
   fullName: string;
   role?: string;
@@ -17,6 +18,7 @@ export function useLogin() {
     try {
       const res = await AxiosWrapper.post("/auth/login", { email, password });
       const user: AuthUser = {
+        id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
         role: res.data.user.role,
