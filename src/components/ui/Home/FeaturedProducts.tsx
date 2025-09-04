@@ -43,8 +43,11 @@ export default function FeaturedProducts() {
       <div className="max-w-6xl mx-auto px-4">
         <HeaderText text="Customer's Choice" text2="Featured Products" />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {randomProducts.map((product: any) => (
-            <FeaturedProductsCard key={product.id} product={product} />
+          {randomProducts.map((product: any, idx: number) => (
+            <FeaturedProductsCard
+              key={product._id || product.id || idx}
+              product={product}
+            />
           ))}
         </div>
       </div>

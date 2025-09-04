@@ -30,6 +30,8 @@ interface LoginData {
 }
 
 const getStoredAuth = (): AuthStorage | null => {
+  if (typeof window === "undefined") return null; // Ensure this runs only on client
+
   const auth = localStorage.getItem("auth");
   if (auth) {
     try {

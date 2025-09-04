@@ -16,6 +16,8 @@ import { useGetCart } from "@/hooks/api/Cart/useCart";
 import { useClearCart } from "@/hooks/api/Cart/useCart";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth/useAuth";
+import { useCreateOrder } from "@/hooks/api/Checkout/useCreateOrder";
+import { showToast } from "../Toasts/toast";
 
 export default function CheckoutForm() {
   const {
@@ -29,31 +31,28 @@ export default function CheckoutForm() {
   });
   const { user } = useAuth();
   const userId = user?.id || "current";
-  const { data: cart = [], refetch } = useGetCart("current");
+  const { data: cart = [], refetch } = useGetCart(userId);
   const clearCart = useClearCart();
+  const createOrder = useCreateOrder(userId);
   const router = useRouter();
 
-  const onSubmit = (data: CheckoutFormData) => {
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: CheckoutFormData) => {
+    if (!user) {
+      showToast("error", "Please log in to place an order.");
+      return;
+    }
     if (cart.length === 0) {
-      showAuthToast("empty-cart");
+      showToast("error", "Your cart is empty.");
       return;
     }
 
-    const newOrder = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      items: cart,
-      total: cart.reduce(
-        (acc: any, item: any) => acc + item.price * item.quantity,
-        0
-      ),
+    const orderPayload = {
       customer: {
-        name: data.fullName || "",
+        fullName: data.fullName || "",
         email: data.email,
         phone: data.phone,
       },
-      shipping: {
+      shippingAddress: {
         address: data.address,
         city: data.city,
         state: data.state,
@@ -61,16 +60,14 @@ export default function CheckoutForm() {
       paymentMethod: data.paymentMethod,
     };
 
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    localStorage.setItem(
-      "orders",
-      JSON.stringify([newOrder, ...existingOrders])
-    );
-
-    const clearCartResponse = clearCart.mutate(userId);
-
-    showAuthToast("order-success");
-    router.push(`/order-success?orderId=${newOrder.id}`);
+    try {
+      const result = await createOrder.mutateAsync(orderPayload);
+      clearCart.mutate(userId);
+      showAuthToast("order-success");
+      router.push(`/order-success?orderId=${result.order.orderId}`);
+    } catch (err: any) {
+      showToast("error", "Failed to create order.");
+    }
   };
 
   return (

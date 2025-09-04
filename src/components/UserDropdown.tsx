@@ -75,25 +75,14 @@ export default function UserDropdown() {
             My Account
           </Link>
 
-          {auth?.role === "buyer" && (
-            <Link
-              href="/order-history"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-            >
-              Order History
-            </Link>
-          )}
+          <Link
+            href="/order-history"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+          >
+            Order History
+          </Link>
 
-          {auth?.role === "farmer" && (
-            <Link
-              href="/farmer-dashboard"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-            >
-              Farmer Dashboard
-            </Link>
-          )}
           <button
             onClick={() => setShowLogoutConfirm(true)}
             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
