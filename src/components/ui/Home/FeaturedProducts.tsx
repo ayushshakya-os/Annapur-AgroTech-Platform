@@ -10,9 +10,6 @@ import { useAuth } from "@/hooks/auth/useAuth";
 import HeaderText from "@/components/HeaderText";
 import { use, useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "featured_products_cache";
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-
 export default function FeaturedProducts() {
   const userId = useAuth().user?.id || "";
   const { data: products = [] } = useAllProducts();
