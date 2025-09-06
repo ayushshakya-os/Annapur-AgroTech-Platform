@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import BiddingDetail from "@/components/ui/Bidding-Portal/BiddingDetails";
 import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export async function generateStaticParams() {
   const allProducts = (await import("@/data/market-products.json")).default;
@@ -22,12 +23,9 @@ export default async function BiddingDetailPage(props: {
   if (!product) return notFound();
 
   return (
-    <section className="mt-[116px]">
+    <section className="mt-[116px] px-5 md:px-10 lg:px-20 mb-10 min-h-screen">
       <Breadcrumb productName={product.name} />
       <BiddingDetail product={product} />
-      <Link href="/bidding-portal" className="text-[#88B04B]">
-        Back to Bidding Portal
-      </Link>
     </section>
   );
 }

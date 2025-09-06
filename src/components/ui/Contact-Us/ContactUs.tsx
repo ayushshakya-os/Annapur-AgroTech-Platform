@@ -10,19 +10,21 @@ import {
   contactSchema,
   ContactFormData,
 } from "@/lib/validation/ContactUsForm/contactSchema";
+import { showToast } from "../Toasts/toast";
 
 export default function ContactUs() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
 
   const onSubmit = (data: ContactFormData) => {
-    console.log(data);
-    alert("Message sent!");
+    showToast("success", "Message sent successfully!");
+    reset();
   };
   return (
     <div
