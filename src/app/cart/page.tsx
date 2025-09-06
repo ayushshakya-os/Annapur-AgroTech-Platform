@@ -46,27 +46,36 @@ const CartPage: React.FC = () => {
     <div className="max-w-5xl mx-auto py-8 px-4 mt-[116px]">
       <div className="flex flex-row items-start justify-between">
         <h1 className="text-2xl font-bold text-[#88B04B] mb-8">Your Cart</h1>
-        <button
-          className="bg-gray-300 text-[#88B04B] hover:opacity-60 px-6 py-2 rounded-lg font-semibold"
-          onClick={() => clearCart.mutate(userId)}
-        >
-          Clear Cart
-        </button>
+        {cart.items.length > 0 && (
+          <button
+            className="bg-gray-300 text-[#88B04B] hover:opacity-60 px-6 py-2 rounded-lg font-semibold"
+            onClick={() => clearCart.mutate(userId)}
+          >
+            Clear Cart
+          </button>
+        )}
       </div>
 
       {!cart || cart.items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="flex flex-col items-center justify-center h-70 w-70 mx-auto rounded-full bg-gray-100 shadow-md">
-            <FaCartShopping className="text-6xl text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-700 text-center text-2xl mt-5">
-              Your cart is empty.
-            </p>
-          </div>
+        <div className="col-span-full text-center py-12">
+          <img
+            src="/image/market/detective.webp"
+            alt="No products found"
+            className="mx-auto mb-6 w-40 h-40 object-contain opacity-80"
+          />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            We couldn't find any items in your cart.
+          </h2>
+          <p className="text-gray-500">
+            Try adding some products to your cart first.
+          </p>
           <button
+            className="mt-6 bg-[#88B04B] text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors"
             onClick={handleContinueShopping}
-            className="mt-4 flex items-center gap-2 bg-[#88B04B] text-white px-6 py-2 rounded-lg font-semibold hover:opacity-80 transition-colors"
           >
-            <span>Continue Shopping</span> <ChevronRight />
+            <span className="flex items-center gap-2">
+              <FaCartShopping size={18} /> Continue Shopping
+            </span>
           </button>
         </div>
       ) : (

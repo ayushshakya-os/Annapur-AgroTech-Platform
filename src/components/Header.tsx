@@ -15,7 +15,6 @@ import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import UserDropdown from "./UserDropdown";
-import { requestNotificationPermission } from "@/hooks/api/sendNotifications";
 import { useGetCart } from "@/hooks/api/Cart/useCart";
 import { useAuth } from "@/hooks/auth/useAuth";
 
@@ -46,11 +45,6 @@ export default function Header() {
     if (storedAuth) {
       const parsedAuth = JSON.parse(storedAuth);
       setAuth(parsedAuth);
-
-      // Request notification permission on client side
-      if (auth?.isGuest === false) {
-        requestNotificationPermission();
-      }
     }
   }, []);
 

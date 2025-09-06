@@ -42,7 +42,25 @@ export default function OrderHistoryPage() {
         {isLoading ? (
           <p>Loading...</p>
         ) : orders.length === 0 ? (
-          <p>No orders found.</p>
+          <div className="col-span-full text-center py-12">
+            <img
+              src="/image/market/detective.webp"
+              alt="No products found"
+              className="mx-auto mb-6 w-40 h-40 object-contain opacity-80"
+            />
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">
+              We couldn't find any products in your orders.
+            </h2>
+            <p className="text-gray-500">
+              Browse our marketplace to find what you're looking for.
+            </p>
+            <button
+              onClick={() => (window.location.href = "/market")}
+              className="mt-4 bg-[#88B04B] text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-150"
+            >
+              Go to Marketplace
+            </button>
+          </div>
         ) : (
           sortOrdersByStatus(orders, filter).map((order: any) => (
             <OrderCard
