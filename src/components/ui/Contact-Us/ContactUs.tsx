@@ -1,9 +1,6 @@
 "use client";
-import { useState } from "react";
 import HeaderText from "@/components/HeaderText";
 import TextInput from "@/components/TextInput";
-import { FaEnvelope, FaPhone, FaUser } from "react-icons/fa";
-import zod from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
