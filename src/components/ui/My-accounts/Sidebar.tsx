@@ -1,6 +1,6 @@
 "use client";
 
-import { FiUser, FiKey } from "react-icons/fi";
+import { FiUser, FiKey, FiBox } from "react-icons/fi";
 import { GrLocation } from "react-icons/gr";
 import clsx from "clsx";
 import { FaBell } from "react-icons/fa";
@@ -14,6 +14,7 @@ const tabs = [
   { key: "account", icon: <FiUser />, label: "My Account" },
   { key: "address", icon: <GrLocation />, label: "Address" },
   { key: "password", icon: <FiKey />, label: "Change Password" },
+  { key: "orders", icon: <FiBox />, label: "Order History" },
   { key: "notifications", icon: <FaBell />, label: "Notification History" },
 ];
 

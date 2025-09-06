@@ -73,7 +73,7 @@ export function useAuth() {
         id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
-        phone: data.phone,
+        phone: res.data.user.phone,
       };
       saveAuth(res.data.token, user);
       return { ...res.data };
@@ -133,6 +133,14 @@ export function useAuth() {
     setAuth(null);
   };
 
+  const handleGuestAccess = (redirectUrl: string) => {
+    if (!auth || auth.user.role === "guest") {
+      if (typeof window !== "undefined") {
+        window.location.href = redirectUrl;
+      }
+    }
+  };
+
   return {
     user: auth?.user,
     token: auth?.token,
@@ -142,6 +150,9 @@ export function useAuth() {
     register,
     guestLogin,
     logout,
+    handleGuestAccess,
+    role: auth?.user.role || "guest",
+    isGuest: auth?.user.role === "guest",
     isAuthenticated: !!auth,
   };
 }
