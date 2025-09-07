@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@fontsource/manrope": "^5.2.5",
+    "@headlessui/react": "^2.2.7",
     "@hookform/resolvers": "^5.1.1",
+    "@tanstack/react-query": "^5.87.1",
+    "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "firebase": "^11.10.0",
     "font": "^0.0.4",
