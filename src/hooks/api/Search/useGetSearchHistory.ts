@@ -2,13 +2,12 @@
 import { useQuery } from "@tanstack/react-query";
 import AxiosWrapper from "@/hooks/api/AxiosWrapper";
 
-export const useGetSearchHistory = (userId: string) => {
+export const useGetSearchHistory = () => {
   return useQuery({
-    queryKey: ["searchHistory", userId],
+    queryKey: ["searchHistory"],
     queryFn: async () => {
-      const { data } = await AxiosWrapper.get(`/user/${userId}/search-history`);
+      const { data } = await AxiosWrapper.get(`/searches`);
       return data;
     },
-    enabled: !!userId, // Only run if userId is present
   });
 };

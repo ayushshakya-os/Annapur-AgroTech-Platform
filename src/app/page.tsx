@@ -12,7 +12,7 @@ export default function Home() {
     <div className="mt-[116px]">
       {/* Components yesko muni*/}
       <Banner />
-      {/* <FeaturedProducts /> */}
+      <FeaturedProducts />
       <FillerBanner />
       <Explore />
       <Marquee />

@@ -1,39 +1,65 @@
-// components/FeaturedProducts.tsx
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import FeaturedProductsCard from "@/components/ui/Cards/FeaturedProductsCard";
-import { useOrderById } from "@/hooks/api/Checkout/useOrderById";
+import { useUserOrders } from "@/hooks/api/Checkout/useUserOrder";
 import { useGetCart } from "@/hooks/api/Cart/useCart";
 import { useGetSearchHistory } from "@/hooks/api/Search/useGetSearchHistory";
 import { useAllProducts } from "@/hooks/api/Market/useGetProducts";
 import { useAuth } from "@/hooks/auth/useAuth";
 import HeaderText from "@/components/HeaderText";
-import { use, useEffect, useMemo, useState } from "react";
 
 export default function FeaturedProducts() {
   const userId = useAuth().user?.id || "";
+
+  // Products
   const { data: products = [] } = useAllProducts();
-  const { data: cart } = useGetCart(userId);
-  const { data: searchHistory } = useGetSearchHistory(userId);
-  const { data: order } = useOrderById(userId || "");
+
+  // Cart (stable array)
+  const { data: cartData } = useGetCart(userId);
+  const cart = useMemo(() => {
+    if (Array.isArray(cartData)) return cartData;
+    if (Array.isArray(cartData?.items)) return cartData.items;
+    return [];
+  }, [cartData]);
+
+  // Search history (stable array)
+  const { data: searchHistoryData } = useGetSearchHistory();
+  const searchHistory = useMemo(() => {
+    if (Array.isArray(searchHistoryData)) return searchHistoryData;
+    if (Array.isArray(searchHistoryData?.history))
+      return searchHistoryData.history;
+    return [];
+  }, [searchHistoryData]);
+
+  // Orders
+  const { data: orders = [] } = useUserOrders(userId);
+
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
 
-  // Algorithm: weights for order/cart/search
+  // Normalize ID
+  const getId = (item: any) => item._id || item.id;
+
+  // Categories based on order/cart/search
   const recommendationCategories = useMemo(() => {
     const categories: Record<string, number> = {};
 
-    order.forEach((order: any) => {
+    // Orders weighting
+    orders.forEach((order: any) => {
       order.items?.forEach((item: any) => {
         if (item.category)
           categories[item.category] = (categories[item.category] || 0) + 3;
       });
     });
+
+    // Cart weighting
     cart.forEach((item: any) => {
       if (item.category)
         categories[item.category] = (categories[item.category] || 0) + 2;
     });
-    // Boost categories matching search queries
-    (searchHistory || []).forEach((query: string) => {
+
+    // Search history weighting
+    searchHistory.forEach((query: string) => {
       products.forEach((prod: any) => {
         if (
           prod.category &&
@@ -48,37 +74,50 @@ export default function FeaturedProducts() {
     return Object.entries(categories)
       .sort((a, b) => b[1] - a[1])
       .map(([cat]) => cat);
-  }, [order, cart, searchHistory, products]);
+  }, [orders, cart, searchHistory, products]);
 
+  // Build recommended products
   useEffect(() => {
-    if (!products.length || !recommendationCategories.length) {
-      setRecommendedProducts([]);
+    if (!products.length) {
+      if (recommendedProducts.length) setRecommendedProducts([]);
       return;
     }
+
     const recommended: any[] = [];
-    for (const category of recommendationCategories) {
-      const productsInCategory = products.filter(
-        (p: any) => p.category === category
-      );
-      for (const prod of productsInCategory) {
-        if (!recommended.some((r) => r.id === prod.id || r._id === prod._id)) {
-          recommended.push(prod);
-          if (recommended.length >= 9) break;
+
+    if (recommendationCategories.length) {
+      for (const category of recommendationCategories) {
+        const productsInCategory = products.filter(
+          (p: any) => p.category === category
+        );
+
+        for (const prod of productsInCategory) {
+          const id = getId(prod);
+          if (!recommended.some((r) => getId(r) === id)) {
+            recommended.push(prod);
+            if (recommended.length >= 9) break;
+          }
         }
+        if (recommended.length >= 9) break;
       }
-      if (recommended.length >= 9) break;
     }
+
+    // Fill with random products if less than 9
     if (recommended.length < 9) {
       const randoms = products
-        .filter(
-          (p: any) => !recommended.some((r) => r.id === p.id || r._id === p._id)
-        )
+        .filter((p: any) => !recommended.some((r) => getId(r) === getId(p)))
         .sort(() => 0.5 - Math.random())
         .slice(0, 9 - recommended.length);
-      setRecommendedProducts([...recommended, ...randoms]);
-    } else {
-      setRecommendedProducts(recommended);
+
+      recommended.push(...randoms);
     }
+
+    // ✅ Only update state if changed
+    setRecommendedProducts((prev) => {
+      const prevIds = prev.map(getId).join(",");
+      const nextIds = recommended.map(getId).join(",");
+      return prevIds === nextIds ? prev : recommended;
+    });
   }, [products, recommendationCategories]);
 
   return (
@@ -88,7 +127,7 @@ export default function FeaturedProducts() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {recommendedProducts.map((product: any, idx: number) => (
             <FeaturedProductsCard
-              key={product._id || product.id || idx}
+              key={getId(product) || idx}
               product={product}
             />
           ))}

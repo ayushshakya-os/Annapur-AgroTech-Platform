@@ -16,7 +16,7 @@ export const SearchBar = ({ query, setQuery }: SearchBarProps) => {
   const handleSearch = (query: string) => {
     // Implement search logic here, e.g., redirect to search results page
     if (user?.id) {
-      addSearchHistory.mutate({ userId: user.id, query });
+      addSearchHistory.mutate({ query });
     }
   };
 
@@ -30,7 +30,6 @@ export const SearchBar = ({ query, setQuery }: SearchBarProps) => {
         onKeyDown={async (e) => {
           if (e.key === "Enter" && user?.id) {
             addSearchHistory.mutate({
-              userId: user.id,
               query: e.currentTarget.value,
             });
           }
