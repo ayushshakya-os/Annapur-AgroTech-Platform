@@ -33,9 +33,11 @@ export default function FeaturedProducts() {
   }, [searchHistoryData]);
 
   // Orders
-  const { data: orders = [] } = useUserOrders(userId);
-
-  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  const { data: ordersData = [] } = useUserOrders(userId);
+  const orders = useMemo(
+    () => (Array.isArray(ordersData) ? ordersData : []),
+    [ordersData]
+  );
 
   // Normalize ID
   const getId = (item: any) => item._id || item.id;
@@ -76,12 +78,8 @@ export default function FeaturedProducts() {
       .map(([cat]) => cat);
   }, [orders, cart, searchHistory, products]);
 
-  // Build recommended products
-  useEffect(() => {
-    if (!products.length) {
-      if (recommendedProducts.length) setRecommendedProducts([]);
-      return;
-    }
+  const recommendedProducts = useMemo(() => {
+    if (!products.length) return [];
 
     const recommended: any[] = [];
 
@@ -102,7 +100,6 @@ export default function FeaturedProducts() {
       }
     }
 
-    // Fill with random products if less than 9
     if (recommended.length < 9) {
       const randoms = products
         .filter((p: any) => !recommended.some((r) => getId(r) === getId(p)))
@@ -112,12 +109,7 @@ export default function FeaturedProducts() {
       recommended.push(...randoms);
     }
 
-    // ✅ Only update state if changed
-    setRecommendedProducts((prev) => {
-      const prevIds = prev.map(getId).join(",");
-      const nextIds = recommended.map(getId).join(",");
-      return prevIds === nextIds ? prev : recommended;
-    });
+    return recommended;
   }, [products, recommendationCategories]);
 
   return (

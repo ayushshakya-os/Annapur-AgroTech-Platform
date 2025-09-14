@@ -184,11 +184,10 @@ export default function FarmerDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50">
+    <div className="min-h-screen mt-30 bg-gradient-to-br from-emerald-50 via-white to-emerald-50">
       {/* Header */}
-      <header className="relative overflow-hidden border-b">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 opacity-90" />
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-white/10" />
+      <header className="relative  h-full border-b">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#6a8c3a] via-[#88b048] to-[#a5c66b] opacity-90" />
         <div className="relative mx-auto max-w-7xl px-6 py-10 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
@@ -198,14 +197,14 @@ export default function FarmerDashboardPage() {
                   Farmers Dashboard
                 </h1>
               </div>
-              <p className="mt-1 text-white/90">
+              <p className="mt-1 text-white">
                 Manage products and negotiations in one place.
               </p>
             </div>
             <div>
               <button
                 onClick={() => setTab("add-product")}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-emerald-700 shadow hover:bg-emerald-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[#88B04B] shadow hover:bg-emerald-50"
               >
                 <Plus className="h-5 w-5" /> Add Product
               </button>

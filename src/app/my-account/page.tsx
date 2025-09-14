@@ -10,7 +10,7 @@ import UserDetails from "@/components/ui/My-accounts/UserDetails";
 
 export default function MyAccountPage() {
   const router = useRouter();
-  const { isGuest, role, handleGuestAccess } = useAuth();
+  const { isGuest, role, handleGuestAccess, user } = useAuth();
   const [activeTab, setActiveTab] = useState("account");
 
   useEffect(() => {
@@ -24,7 +24,11 @@ export default function MyAccountPage() {
       <div className="flex flex-col justify-center gap-2 mx-20">
         <HeaderText text="Manage your account." text2="My Account" />
         <div className="flex flex-col md:flex-row gap-4">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            user={user ?? { email: "", fullName: "", role: "" }}
+          />
           <UserDetails activeTab={activeTab} />
         </div>
       </div>

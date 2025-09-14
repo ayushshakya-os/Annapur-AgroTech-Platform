@@ -64,7 +64,7 @@ export default function BiddingSection({
               onClick={() => setActive(t.key)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 active === t.key
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#88B04B] text-white"
                   : "bg-white border text-gray-700"
               }`}
             >
@@ -134,7 +134,7 @@ export default function BiddingSection({
                 <div className="flex gap-2">
                   <button
                     onClick={() => onAccept(b._id)}
-                    className="rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700"
+                    className="rounded-lg bg-[#88B04B] px-3 py-2 text-white hover:bg-emerald-600"
                   >
                     Accept
                   </button>
@@ -158,7 +158,7 @@ export default function BiddingSection({
                   <span
                     className={`inline-flex items-center rounded px-2 py-1 border ${
                       b.status === "accepted"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        ? "bg-emerald-50 text-[#88B04B] border-emerald-200"
                         : b.status === "countered"
                         ? "bg-amber-50 text-amber-700 border-amber-200"
                         : "bg-rose-50 text-rose-700 border-rose-200"
@@ -192,7 +192,7 @@ export default function BiddingSection({
                       <input
                         type="number"
                         step="0.01"
-                        className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#88B04B] focus:border-transparent"
                         value={counterValue}
                         onChange={(e) =>
                           setCounterValue(
@@ -223,7 +223,7 @@ export default function BiddingSection({
                             setCounterValue("");
                           }
                         }}
-                        className="rounded-lg bg-amber-500 px-4 py-2 text-white hover:bg-amber-600 disabled:opacity-60"
+                        className="rounded-lg bg-[#88B04B] px-4 py-2 text-white hover:bg-[#7a9e44] "
                       >
                         Send Counter
                       </button>

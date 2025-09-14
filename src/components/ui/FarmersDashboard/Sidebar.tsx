@@ -34,7 +34,7 @@ export default function Sidebar({
                 onClick={() => onSelect(item.key)}
                 className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 mb-1 text-left transition ${
                   isActive
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-[#88B04B] text-white"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >

@@ -58,16 +58,23 @@ export default function ProductsTable({
                   Rs. {p.price.toFixed(2)}
                 </td>
                 <td className="px-4 py-3">
-                  <label className="inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      className="peer sr-only"
+                      className="sr-only peer"
                       checked={!!p.isBiddable}
                       onChange={() => onToggleBiddable(p)}
                     />
-                    <span className="w-10 h-5 bg-gray-200 peer-checked:bg-emerald-600 rounded-full relative transition">
-                      <span className="absolute top-0.5 left-0.5 h-4 w-4 bg-white rounded-full transition peer-checked:left-5 shadow" />
-                    </span>
+
+                    {/* track */}
+                    <div className="w-12 h-7 bg-gray-200 rounded-full peer-checked:bg-[#88B04B] transition-colors duration-200" />
+
+                    {/* knob (absolute so translate works reliably) */}
+                    <span
+                      className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200
+               peer-checked:translate-x-5"
+                      aria-hidden
+                    />
                   </label>
                 </td>
                 <td className="px-4 py-3 text-right text-gray-500">—</td>

@@ -3,6 +3,7 @@ import UserAddress from "./UserAddress";
 import ChangePassword from "./ChangePassword";
 import OrderHistoryPage from "./OrderHistory";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import BiddingList from "./BiddingList";
 
 type Props = {
   activeTab: string;
@@ -20,6 +21,7 @@ export default function UserDetails({ activeTab }: Props) {
           <OrderHistoryPage />{" "}
         </div>
       )}
+      {activeTab === "bidding" && <BiddingList />}
       {activeTab === "notifications" && (
         <div>
           <PushNotificationButton />

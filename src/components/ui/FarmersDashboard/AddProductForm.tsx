@@ -1,28 +1,40 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AddProductSchema,
+  AddProductFormData,
+} from "@/lib/validation/addProductSchema";
 
 export default function AddProductForm({
   onSubmit,
 }: {
-  onSubmit: (data: {
-    name: string;
-    price: number;
-    category?: string;
-    short_description?: string;
-    description?: string;
-    imageFile?: File | null;
-  }) => void;
+  onSubmit: (data: AddProductFormData) => void;
 }) {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState<number | "">("");
-  const [category, setCategory] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
-  const [description, setDescription] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>("");
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<AddProductFormData>({
+    resolver: zodResolver(AddProductSchema),
+    defaultValues: {
+      name: "",
+      price: undefined,
+      category: "",
+      short_description: "",
+      description: "",
+      imageFile: null,
+    },
+  });
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState("");
+
+  const file = watch("imageFile");
 
   useEffect(() => {
     if (!file) return setPreview("");
@@ -31,23 +43,9 @@ export default function AddProductForm({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !price) return;
-    onSubmit({
-      name,
-      price: Number(price),
-      category: category || undefined,
-      short_description: shortDescription || undefined,
-      description: description || undefined,
-      imageFile: file || undefined,
-    });
-    setName("");
-    setPrice("");
-    setCategory("");
-    setShortDescription("");
-    setDescription("");
-    setFile(null);
+  function onValid(data: AddProductFormData) {
+    onSubmit(data);
+    reset();
     setPreview("");
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -62,66 +60,69 @@ export default function AddProductForm({
       </div>
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onValid)}
         className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5"
       >
+        {/* Product Name */}
         <div className="md:col-span-2">
           <label className="text-sm text-gray-600">Product Name</label>
           <input
+            {...register("name")}
             className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Premium Organic Tomatoes"
-            required
           />
+          {errors.name && (
+            <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+          )}
         </div>
 
+        {/* Category */}
         <div>
           <label className="text-sm text-gray-600">Category</label>
           <input
+            {...register("category")}
             className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
             placeholder="Vegetables, Grains, Fruits..."
           />
         </div>
 
+        {/* Price */}
         <div>
           <label className="text-sm text-gray-600">Price</label>
           <input
             type="number"
             step="0.01"
+            {...register("price", { valueAsNumber: true })}
             className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            value={price}
-            onChange={(e) =>
-              setPrice(e.target.value === "" ? "" : Number(e.target.value))
-            }
             placeholder="e.g., 120.00"
-            required
           />
+          {errors.price && (
+            <p className="text-xs text-red-500 mt-1">{errors.price.message}</p>
+          )}
         </div>
 
+        {/* Short Description */}
         <div className="md:col-span-2">
           <label className="text-sm text-gray-600">Short Description</label>
           <input
+            {...register("short_description")}
             className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            value={shortDescription}
-            onChange={(e) => setShortDescription(e.target.value)}
             placeholder="A short punchy line about your product"
           />
         </div>
 
+        {/* Description */}
         <div className="md:col-span-2">
           <label className="text-sm text-gray-600">Description</label>
           <textarea
+            {...register("description")}
             className="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             rows={4}
             placeholder="More details, quality notes, harvesting info..."
           />
         </div>
 
+        {/* Product Image */}
         <div className="md:col-span-2">
           <label className="text-sm text-gray-600">Product Image</label>
           <div className="mt-1 flex items-start gap-4">
@@ -138,12 +139,19 @@ export default function AddProductForm({
             </div>
             <div className="flex-1">
               <input
-                ref={fileRef}
                 type="file"
                 accept="image/*"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-white hover:file:bg-emerald-700"
+                {...register("imageFile", {
+                  onChange: (e) =>
+                    e.target.files?.[0] ? e.target.files[0] : null,
+                })}
+                className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#88B04B] file:px-4 file:py-2 file:text-white hover:file:bg-emerald-600"
               />
+              {errors.imageFile && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.imageFile.message as string}
+                </p>
+              )}
               <p className="mt-2 text-xs text-gray-500">
                 Max 5MB. Formats: JPG, PNG, WEBP. Replace with your uploader
                 later.
@@ -152,10 +160,11 @@ export default function AddProductForm({
           </div>
         </div>
 
+        {/* Submit */}
         <div className="md:col-span-2 flex justify-end">
           <button
             type="submit"
-            className="rounded-lg bg-emerald-600 px-5 py-2 text-white shadow hover:bg-emerald-700"
+            className="rounded-lg bg-[#88B04B] px-5 py-2 text-white shadow hover:bg-emerald-600"
           >
             Add Product
           </button>
