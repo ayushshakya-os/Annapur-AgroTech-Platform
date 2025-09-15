@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation";
 import UserDropdown from "./UserDropdown";
 import { useGetCart } from "@/hooks/api/Cart/useCart";
 import { useAuth } from "@/hooks/auth/useAuth";
+import GoogleTranslate from "./GoogleTranslate";
 
 export default function Header() {
   const pathname = usePathname();
@@ -74,11 +75,16 @@ export default function Header() {
             <span>Mail Us: 3k6Mh@example.com</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <FaFacebook className="text-white" />
-          <FaInstagram className="text-white" />
-          <FaGithub className="text-white" />
-          <FaLinkedin className="text-white" />
+        <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center gap-2">
+            <FaFacebook className="text-white" />
+            <FaInstagram className="text-white" />
+            <FaGithub className="text-white" />
+            <FaLinkedin className="text-white" />
+          </div>
+          <div className="flex items-center justify-center">
+            <GoogleTranslate />
+          </div>
         </div>
       </div>
 
