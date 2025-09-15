@@ -10,6 +10,7 @@ const GoogleTranslate = () => {
       const storedLanguage = sessionStorage.getItem("selectedLanguage") || "en";
       setSelectedLanguage(storedLanguage);
     }
+
     // Check if the script is already added
     if (!document.querySelector("#google-translate-script")) {
       const script = document.createElement("script");
@@ -32,8 +33,36 @@ const GoogleTranslate = () => {
           },
           "google_translate_element"
         );
+
+        // Apply stored language right after initialization
+        setTimeout(() => {
+          applyStoredLanguage();
+        }, 500);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const hideToolbar = () => {
+      const iframe = document.querySelector(
+        "iframe.goog-te-banner-frame"
+      ) as HTMLElement | null;
+      if (iframe) iframe.style.display = "none";
+      document.documentElement.style.top = "0px";
+      document.body.style.top = "0px";
+    };
+
+    // Hide now
+    hideToolbar();
+
+    // Hide whenever DOM changes (e.g., after Google injects the banner)
+    const observer = new MutationObserver(hideToolbar);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   // Apply the stored language to Google Translate after initialization
@@ -77,7 +106,7 @@ const GoogleTranslate = () => {
 
   return (
     <div>
-      <div className="text-left">
+      <div className="relative inline-block text-left">
         <button
           onClick={() => setIsOpen(!isOpen)}
           translate="no"
