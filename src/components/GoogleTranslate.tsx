@@ -135,7 +135,7 @@ const GoogleTranslate = () => {
       </div>
 
       {/* Google Translate hidden container */}
-      <div id="google_translate_element" style={{ display: "none" }} />
+      <div id="google_translate_element" style={{ display: "none" }}></div>
     </div>
   );
 };
