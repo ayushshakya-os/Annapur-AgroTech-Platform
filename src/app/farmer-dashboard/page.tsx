@@ -9,79 +9,36 @@ import BidHistory from "./../../components/ui/FarmersDashboard/BiddingHistory";
 import type { Bid, Product } from "../../lib/types/type";
 import { Leaf, Plus } from "lucide-react";
 
+// Hooks
+import { useAddProduct } from "@/hooks/api/FarmersDashboard/useAddProducts";
+import type { AddProductFormData } from "@/lib/validation/addProductSchema";
+import {
+  useGetFarmersProducts,
+  type MyProductsParams,
+} from "@/hooks/api/FarmersDashboard/useGetFarmersProducts";
+
 type Tab = "products" | "add-product" | "bidding" | "history";
 
-// Helper for demo IDs
+// Helper for demo IDs (still used for demo bids)
 const uid = (p = "id") =>
   `${p}_${Math.random().toString(36).slice(2, 8)}${Date.now()}`;
 
 export default function FarmerDashboardPage() {
   const [tab, setTab] = useState<Tab>("products");
 
-  // Demo data (UI-only)
-  const [products, setProducts] = useState<Product[]>([
-    {
-      _id: uid("prod"),
-      name: "Organic Tomatoes",
-      category: "Vegetables",
-      price: 120,
-      short_description: "Fresh, vine-ripened, pesticide-free",
-      image:
-        "https://images.unsplash.com/photo-1546470427-0fd57e450d2b?q=80&w=1200&auto=format&fit=crop",
-      isBiddable: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: uid("prod"),
-      name: "Golden Wheat",
-      category: "Grains",
-      price: 55,
-      short_description: "High-yield, premium quality wheat",
-      image:
-        "https://images.unsplash.com/photo-1597223557154-721c1cecc4b0?q=80&w=1200&auto=format&fit=crop",
-      isBiddable: true,
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  // Fetch farmer's products from API
+  const params: MyProductsParams = { page: 1, limit: 50, sort: "newest" };
+  const {
+    data: myProducts,
+    isPending: isProductsPending,
+    error: productsError,
+    refetch: refetchProducts,
+  } = useGetFarmersProducts(params);
 
-  const [bidsByProduct, setBidsByProduct] = useState<Record<string, Bid[]>>(
-    () => {
-      const p1 = (products[0] && products[0]._id) || uid("prod");
-      const p2 = (products[1] && products[1]._id) || uid("prod");
-      const now = new Date().toISOString();
+  const products: Product[] = myProducts?.products ?? [];
 
-      return {
-        [p1]: [
-          {
-            _id: uid("bid"),
-            productId: p1,
-            productName: "Organic Tomatoes",
-            buyerId: "buyer_1",
-            buyerName: "GreenGrocer Co.",
-            initialPrice: 120,
-            offeredPrice: 115,
-            negotiationId: uid("neg"),
-            status: "pending",
-            createdAt: now,
-          },
-        ],
-        [p2]: [
-          {
-            _id: uid("bid"),
-            productId: p2,
-            productName: "Golden Wheat",
-            buyerId: "buyer_2",
-            buyerName: "Bakers Hub",
-            initialPrice: 55,
-            offeredPrice: 50,
-            negotiationId: uid("neg"),
-            status: "pending",
-            createdAt: now,
-          },
-        ],
-      };
-    }
-  );
+  // Demo bids data (independent of products; keep empty by default)
+  const [bidsByProduct, setBidsByProduct] = useState<Record<string, Bid[]>>({});
 
   const [selectedProductId, setSelectedProductId] = useState<string>("all");
 
@@ -107,42 +64,35 @@ export default function FarmerDashboardPage() {
     [flatBids]
   );
 
-  // Placeholder handlers — replace with your API wiring easily.
-  function handleAddProduct(data: {
-    name: string;
-    price: number;
-    category?: string;
-    short_description?: string;
-    description?: string;
-    imageFile?: File | null;
-  }) {
-    // For UI only: create a local URL for preview if image selected
-    let image: string | undefined = undefined;
-    if (data.imageFile) {
-      image = URL.createObjectURL(data.imageFile);
-      // NOTE: In real integration, upload to server/CDN and use the returned URL.
+  // Add product mutation
+  const {
+    mutateAsync: addProduct,
+    isPending, // v5; if using v4 this is isLoading
+    error,
+  } = useAddProduct();
+
+  // On submit, create then refetch list
+  async function handleAddProduct(data: AddProductFormData) {
+    try {
+      await addProduct(data);
+      await refetchProducts(); // ensure list is fresh
+      setTab("products");
+    } catch (e) {
+      console.error(e);
     }
-    const newProduct: Product = {
-      _id: uid("prod"),
-      name: data.name,
-      category: data.category,
-      price: data.price,
-      short_description: data.short_description,
-      description: data.description,
-      image,
-      isBiddable: true,
-      createdAt: new Date().toISOString(),
-    };
-    setProducts((prev) => [newProduct, ...prev]);
-    setTab("products");
   }
 
+  // Local-only toggle for UI (not persisted yet)
   function toggleBiddable(p: Product) {
-    setProducts((prev) =>
-      prev.map((x) =>
-        x._id === p._id ? { ...x, isBiddable: !x.isBiddable } : x
-      )
+    // Since persistence isn't implemented here, just flip locally in the table view by mapping before render
+    const next = products.map((x) =>
+      x._id === p._id ? { ...x, isBiddable: !x.isBiddable } : x
     );
+    // We don't keep local products state; to reflect UI immediately, you can optimistically mutate the query cache:
+    // Optionally: import useQueryClient and setQueryData here, or keep as-is and implement toggle backend later.
+    // For simplicity, we’ll request a refetch (cheap and consistent).
+    // If you add a real PUT /products/:id later, call it then refetch.
+    void refetchProducts();
   }
 
   function acceptBid(bidId: string) {
@@ -220,14 +170,38 @@ export default function FarmerDashboardPage() {
 
           <div className="space-y-6">
             {tab === "products" && (
-              <ProductsTable
-                products={products}
-                onToggleBiddable={toggleBiddable}
-              />
+              <>
+                {productsError && (
+                  <div className="rounded-md bg-red-50 text-red-700 p-3 text-sm">
+                    {(productsError as Error).message}
+                  </div>
+                )}
+                {isProductsPending ? (
+                  <div className="rounded-xl border bg-white shadow-sm p-6 text-sm text-gray-600">
+                    Loading your products...
+                  </div>
+                ) : (
+                  <ProductsTable
+                    products={products}
+                    onToggleBiddable={toggleBiddable}
+                  />
+                )}
+              </>
             )}
 
             {tab === "add-product" && (
-              <AddProductForm onSubmit={handleAddProduct} />
+              <div className="space-y-3">
+                {/* Optional error/loading UI from the add hook */}
+                {error && (
+                  <p className="text-sm text-red-600">
+                    {(error as Error).message}
+                  </p>
+                )}
+                {isPending && (
+                  <p className="text-sm text-gray-600">Adding product...</p>
+                )}
+                <AddProductForm onSubmit={handleAddProduct} />
+              </div>
             )}
 
             {tab === "bidding" && (

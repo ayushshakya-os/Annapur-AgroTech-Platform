@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AddProductSchema,
@@ -18,6 +18,7 @@ export default function AddProductForm({
     handleSubmit,
     watch,
     reset,
+    control,
     formState: { errors },
   } = useForm<AddProductFormData>({
     resolver: zodResolver(AddProductSchema),
@@ -37,7 +38,11 @@ export default function AddProductForm({
   const file = watch("imageFile");
 
   useEffect(() => {
-    if (!file) return setPreview("");
+    // Ensure we only create an object URL for a real File/Blob
+    if (!file || !(file instanceof File)) {
+      setPreview("");
+      return;
+    }
     const url = URL.createObjectURL(file);
     setPreview(url);
     return () => URL.revokeObjectURL(url);
@@ -138,14 +143,29 @@ export default function AddProductForm({
               )}
             </div>
             <div className="flex-1">
-              <input
-                type="file"
-                accept="image/*"
-                {...register("imageFile", {
-                  onChange: (e) =>
-                    e.target.files?.[0] ? e.target.files[0] : null,
-                })}
-                className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#88B04B] file:px-4 file:py-2 file:text-white hover:file:bg-emerald-600"
+              <Controller
+                name="imageFile"
+                control={control}
+                render={({ field: { onChange, ref } }) => (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={(el) => {
+                      // keep both RHF ref and your local ref
+                      if (typeof ref === "function") ref(el);
+                      else if (ref)
+                        (
+                          ref as React.MutableRefObject<HTMLInputElement | null>
+                        ).current = el;
+                      fileRef.current = el;
+                    }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      onChange(f);
+                    }}
+                    className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#88B04B] file:px-4 file:py-2 file:text-white hover:file:bg-emerald-600"
+                  />
+                )}
               />
               {errors.imageFile && (
                 <p className="text-xs text-red-500 mt-1">

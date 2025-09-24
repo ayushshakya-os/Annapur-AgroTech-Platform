@@ -9,6 +9,7 @@ export const AddProductSchema = z.object({
   category: z.string().optional(),
   short_description: z.string().optional(),
   description: z.string().optional(),
+  isBiddable: z.boolean().optional(),
   imageFile: z
     .instanceof(File)
     .refine((f) => f.size <= 5 * 1024 * 1024, "Max file size is 5MB")
