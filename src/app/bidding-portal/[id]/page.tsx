@@ -1,31 +1,13 @@
-import { notFound } from "next/navigation";
-import BiddingDetail from "@/components/ui/Bidding-Portal/BiddingDetails";
-import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import BiddingDetailClient from "@/components/ui/Bidding-Portal/BiddingDetailClient";
 
-export async function generateStaticParams() {
-  const allProducts = (await import("@/data/market-products.json")).default;
-  return allProducts.map((product) => ({
-    id: product.id.toString(),
-  }));
-}
+export const dynamic = "force-dynamic"; // ensures runtime fetch; remove if you pre-render with your backend
 
-export default async function BiddingDetailPage(props: {
-  params: { id: string };
-}) {
-  const { id: idParam } = await props.params;
-  const id = parseInt(idParam, 10);
-
-  const allProducts = (await import("@/data/market-products.json")).default;
-  const product = allProducts.find((p) => p.id === id);
-
-  if (!product) return notFound();
+export default function BiddingDetailPage(props: { params: { id: string } }) {
+  const { id } = props.params;
 
   return (
     <section className="mt-[116px] px-5 md:px-10 lg:px-20 mb-10 min-h-screen">
-      <Breadcrumb productName={product.name} />
-      <BiddingDetail product={product} />
+      <BiddingDetailClient idParam={id} />
     </section>
   );
 }

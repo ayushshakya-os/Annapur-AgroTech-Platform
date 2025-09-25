@@ -13,17 +13,22 @@ interface Product {
 }
 
 export const ProductCard = ({ product }: { product: Product }) => {
-  const [imageError, setImageError] = useState(false);
+  const [imageErrors, setImageErrors] = useState<{ [url: string]: boolean }>(
+    {}
+  );
+
+  const getSafeImageSrc = (url: string) =>
+    imageErrors[url] ? "/placeholder.png" : url;
+
+  const handleImageError = (url: string) => {
+    setImageErrors((prev) => ({ ...prev, [url]: true }));
+  };
   return (
     <Link href={`/market/${product._id}`} className="block">
       <div className="h-full bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition">
         <Image
-          src={
-            !imageError && product.image?.trim().startsWith("/")
-              ? product.image
-              : "/placeholder.png"
-          }
-          onError={() => setImageError(true)}
+          src={getSafeImageSrc(product.image)}
+          onError={() => handleImageError(product.image)}
           alt={product.name}
           width={500}
           height={300}

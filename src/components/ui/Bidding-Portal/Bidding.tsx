@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pagination } from "../Market/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
-import BiddingCard, { Product } from "./BiddingCart";
+import BiddingCard, { Product } from "./BiddingCard";
 
 type Props = {
   products: Product[];
@@ -13,8 +13,17 @@ const Bidding: React.FC<Props> = ({ products }) => {
   const router = useRouter();
   const productsPerPage = 12;
 
-  // Limit to first 96 products for ~8 pages
-  const limitedProducts = products.slice(0, 96);
+  // Keep only products with isBiddable === true
+  const biddableProducts = useMemo(
+    () => products.filter((p: any) => p?.isBiddable === true),
+    [products]
+  );
+
+  // Limit to first 96 biddable products for ~8 pages
+  const limitedProducts = useMemo(
+    () => biddableProducts.slice(0, 96),
+    [biddableProducts]
+  );
 
   // Get page from URL or default to 1
   const initialPage = parseInt(searchParams.get("page") || "1", 10);
@@ -22,11 +31,22 @@ const Bidding: React.FC<Props> = ({ products }) => {
     isNaN(initialPage) || initialPage < 1 ? 1 : initialPage
   );
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(limitedProducts.length / productsPerPage)
+  );
+
+  // Clamp page when data size changes
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
+
   // Update the URL when page changes
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set("page", currentPage.toString());
     router.replace(`?${params.toString()}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -35,8 +55,6 @@ const Bidding: React.FC<Props> = ({ products }) => {
     indexOfFirstProduct,
     indexOfLastProduct
   );
-
-  const totalPages = Math.ceil(limitedProducts.length / productsPerPage);
 
   return (
     <div>
@@ -53,8 +71,8 @@ const Bidding: React.FC<Props> = ({ products }) => {
             </p>
           </div>
         ) : (
-          currentProducts.map((product) => (
-            <BiddingCard product={product} key={product.id} />
+          currentProducts.map((product: any) => (
+            <BiddingCard product={product} key={product.id || product._id} />
           ))
         )}
       </div>

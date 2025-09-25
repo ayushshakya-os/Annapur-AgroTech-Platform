@@ -18,7 +18,16 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
   const { user } = useAuth();
   const userId = user?.id || "";
   const [quantity, setQuantity] = useState(1);
-  const [imageError, setImageError] = useState(false);
+  const [imageErrors, setImageErrors] = useState<{ [url: string]: boolean }>(
+    {}
+  );
+
+  const getSafeImageSrc = (url: string) =>
+    imageErrors[url] ? "/placeholder.png" : url;
+
+  const handleImageError = (url: string) => {
+    setImageErrors((prev) => ({ ...prev, [url]: true }));
+  };
 
   const { mutate: addToCart, isPending } = useAddToCart();
 
@@ -53,12 +62,8 @@ const ProductDetail: React.FC<Props> = ({ product }) => {
     <div className="max-w-5xl ml-20 py-8 flex flex-row gap-10">
       <div>
         <Image
-          src={
-            !imageError && product.image?.trim().startsWith("/")
-              ? product.image
-              : "/placeholder.png"
-          }
-          onError={() => setImageError(true)}
+          src={getSafeImageSrc(product.image)}
+          onError={() => handleImageError(product.image)}
           alt={product.name}
           width={600}
           height={600}
