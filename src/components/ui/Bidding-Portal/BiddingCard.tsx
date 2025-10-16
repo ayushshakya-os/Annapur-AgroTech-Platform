@@ -1,70 +1,141 @@
 "use client";
-import React, { useState } from "react";
-import { showToast } from "../Toasts/toast";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { showToast } from "../Toasts/toast";
+import { useCreateNegotiation } from "@/hooks/api/Bidding/useCreateNegotiation";
+import { usePlaceBid } from "@/hooks/api/Bidding/Buyer/usePlaceBid";
+import { useGetBidsForProduct } from "@/hooks/api/Bidding/useGetAllBids";
+import { useNegotiationSocket } from "@/hooks/api/Socket/useNegotiationSocket";
+import type { Bid } from "@/lib/types/Bidding";
 
 export type Product = {
-  id: number;
+  id: string | number;
   name: string;
   description: string;
   image: string;
   price: string;
   short_description?: string;
   category?: string;
+  // Prefer to have _id here if id is not Mongo ObjectId
+  // _id?: string;
 };
 
-const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
-  const [currentBid, setCurrentBid] = useState<number>(
-    parseFloat(product.price) || 0
-  );
-  const [bidInput, setBidInput] = useState<string>("");
-  const [isPlacing, setIsPlacing] = useState(false);
-  const [lastBidder, setLastBidder] = useState<string | null>(null);
+const BiddingCardWithApi: React.FC<{ product: Product }> = ({ product }) => {
+  // IMPORTANT: Ensure this is the MongoDB ObjectId string
+  const productId = String(product.id);
+  // If your product has _id, prefer: const productId = String(product._id);
 
-  // ✅ State to track broken images
+  const basePrice = useMemo(() => {
+    const p = parseFloat(product.price);
+    return Number.isFinite(p) ? p : 0;
+  }, [product.price]);
+
+  const [currentBid, setCurrentBid] = useState<number>(basePrice);
+  const [bidInput, setBidInput] = useState<string>("");
+  const [lastBidder, setLastBidder] = useState<string | null>(null);
+  const [negotiationId, setNegotiationId] = useState<string | null>(null);
+
   const [imageErrors, setImageErrors] = useState<{ [url: string]: boolean }>(
     {}
   );
-
   const getSafeImageSrc = (url: string) =>
     imageErrors[url] ? "/placeholder.png" : url;
-
-  const handleImageError = (url: string) => {
+  const handleImageError = (url: string) =>
     setImageErrors((prev) => ({ ...prev, [url]: true }));
-  };
 
-  const handlePlaceBid = () => {
+  // Queries
+  const { data: bidsResp } = useGetBidsForProduct(productId);
+  const createNegotiation = useCreateNegotiation();
+  const placeBid = usePlaceBid({ productId });
+
+  const highestBid: Bid | null =
+    bidsResp?.bids && bidsResp.bids.length
+      ? bidsResp.bids.reduce(
+          (max, b) => (b.offeredPrice > max.offeredPrice ? b : max),
+          bidsResp.bids[0]
+        )
+      : null;
+
+  useEffect(() => {
+    setCurrentBid(highestBid ? highestBid.offeredPrice : basePrice);
+  }, [highestBid, basePrice]);
+
+  useNegotiationSocket({
+    negotiationId,
+    productId,
+    onBidNotification: (payload) => {
+      if (payload?.message) showToast("info", payload.message);
+    },
+  });
+
+  const handlePlaceBid = async () => {
     const newBid = parseFloat(bidInput);
     if (isNaN(newBid)) {
       showToast("error", "Please enter a valid bid amount.");
       return;
     }
-    setIsPlacing(true);
-    setTimeout(() => {
-      if (newBid > currentBid) {
-        setCurrentBid(newBid);
-        setLastBidder("You");
-        showToast("success", "Bid placed!");
-      } else {
-        showToast(
-          "error",
-          "Please enter a bid higher than the current highest bid."
+    if (newBid <= currentBid) {
+      showToast(
+        "error",
+        "Please enter a bid higher than the current highest bid."
+      );
+      return;
+    }
+
+    // Optional: guard that productId looks like a Mongo ObjectId
+    if (!/^[a-fA-F0-9]{24}$/.test(productId)) {
+      showToast(
+        "error",
+        "Invalid product identifier. Please refresh and try again."
+      );
+      return;
+    }
+
+    try {
+      const res = await createNegotiation.mutateAsync({ productId });
+      if (!res?.success || !res.negotiation?._id) {
+        throw new Error(
+          res?.error || res?.msg || "Failed to start negotiation"
         );
       }
+
+      const negoId = res.negotiation._id;
+      setNegotiationId(negoId);
+
+      // Include productId to satisfy backend validator
+      const bidRes = await placeBid.mutateAsync({
+        negotiationId: negoId,
+        offeredPrice: newBid,
+        productId,
+      });
+
+      if (!bidRes.success || !bidRes.bid) {
+        throw new Error(bidRes.error || "Failed to place bid");
+      }
+
+      setLastBidder("You");
       setBidInput("");
-      setIsPlacing(false);
-    }, 500);
+      setCurrentBid(bidRes.bid.offeredPrice);
+      showToast("success", "Bid placed!");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error ||
+        e?.message ||
+        "Something went wrong while placing your bid.";
+      showToast("error", msg);
+    }
   };
+
+  const isPlacing = createNegotiation.isPending || placeBid.isPending;
 
   return (
     <div className="relative w-full bg-white shadow-lg rounded-xl p-4 border hover:shadow-2xl transition group">
       <Link
         href={`/bidding-portal/${product.id}`}
-        key={product.id}
+        key={String(product.id)}
         className="block"
       >
         <div className="relative">
-          {/* Optional "New" badge */}
           <span className="absolute top-2 left-2 bg-yellow-400 rounded px-2 text-xs z-10">
             New
           </span>
@@ -77,7 +148,6 @@ const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
         </div>
         <div className="flex items-center justify-between mt-3">
           <h2 className="text-xl font-semibold">{product.name}</h2>
-          {/* Timer display removed */}
         </div>
         <p className="text-sm text-gray-600 mt-1">
           {product.short_description || product.description}
@@ -91,12 +161,13 @@ const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
           </p>
         )}
       </Link>
+
       <div className="flex mt-2 space-x-2">
         <input
           type="number"
           value={bidInput}
           onChange={(e) => setBidInput(e.target.value)}
-          placeholder="Enter your bid"
+          placeholder={`Enter your bid (min ${currentBid + 1})`}
           className={`w-full border px-2 py-1 rounded ${
             isPlacing ? "cursor-not-allowed opacity-70" : ""
           }`}
@@ -109,27 +180,27 @@ const BiddingCard: React.FC<{ product: Product }> = ({ product }) => {
             isPlacing ? "opacity-50 cursor-not-allowed" : ""
           }`}
           disabled={isPlacing}
+          type="button"
         >
           {isPlacing ? "Submitting..." : "Submit"}
         </button>
       </div>
-      {/* Optional Quick Bid Buttons */}
+
       <div className="flex gap-2 mt-2">
         {[10, 50, 100].map((amount) => (
           <button
             key={amount}
             className="text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
             disabled={isPlacing}
-            onClick={() => setBidInput((currentBid + amount).toString())}
+            onClick={() => setBidInput(String(currentBid + amount))}
             type="button"
           >
             +{amount}
           </button>
         ))}
       </div>
-      {/* Timer overlay removed */}
     </div>
   );
 };
 
-export default BiddingCard;
+export default BiddingCardWithApi;
