@@ -4,19 +4,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosWrapper from "@/hooks/api/AxiosWrapper";
 import type { Bid } from "@/lib/types/type";
 
-type CounterBidPayload = {
-  bidId: string;
-  offeredPrice: number;
-};
-
-export function useCounterBid() {
+export function useRejectBid() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ bidId, offeredPrice }: CounterBidPayload) => {
-      const res = await axiosWrapper.put(`/api/bids/${bidId}/counter`, {
-        offeredPrice,
-      });
+    mutationFn: async (bidId: string) => {
+      const res = await axiosWrapper.put(`/api/bids/${bidId}/reject`);
       return res.data as { success: boolean; bid: Bid };
     },
     onSuccess: (data) => {

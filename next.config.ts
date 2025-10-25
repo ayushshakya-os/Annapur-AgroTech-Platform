@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     // Option 1: simple domains list
     // domains: ["example.com", "api.yourdomain.com"],
@@ -36,13 +35,6 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/uploads/**",
       },
-      // Add other CDNs (Cloudinary, S3, etc.) if you use them
-      // {
-      //   protocol: "https",
-      //   hostname: "res.cloudinary.com",
-      //   port: "",
-      //   pathname: "/**",
-      // },
     ],
   },
 };
