@@ -6,7 +6,14 @@ const passwordValidation = new RegExp(
 
 export const ChangePasswordSchema = z
   .object({
-    password: z
+    old_password: z
+      .string()
+      .min(1, { message: "Must have at least 1 character" })
+      .regex(passwordValidation, {
+        message:
+          "Your password must contain uppercase, lowercase, number, and special characters",
+      }),
+    new_password: z
       .string()
       .min(1, { message: "Must have at least 1 character" })
       .regex(passwordValidation, {
@@ -15,8 +22,8 @@ export const ChangePasswordSchema = z
       }),
     confirm_password: z.string().min(1, "Confirm password is required"),
   })
-  .refine((data) => data.password === data.confirm_password, {
-    path: ["confirmPassword"],
+  .refine((data) => data.new_password === data.confirm_password, {
+    path: ["confirm_password"],
     message: "Passwords do not match",
   });
 

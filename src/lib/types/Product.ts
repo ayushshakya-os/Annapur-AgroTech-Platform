@@ -1,5 +1,5 @@
 export interface Product {
-  id: number;
+  _id: number;
   name: string;
   category: string;
   price: string;
@@ -7,4 +7,6 @@ export interface Product {
   short_description: string;
   description?: string;
   quantity?: number;
+  farmerId?: number;
+  farmerName?: string;
 }

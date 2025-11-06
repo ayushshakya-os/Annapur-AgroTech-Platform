@@ -1,64 +1,66 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Copy, X } from "lucide-react";
 import Image from "next/image";
 import Button from "../Buttons/Button";
+import { useOrderById } from "@/hooks/api/Checkout/useOrderById";
+import AxiosWrapper from "@/hooks/api/AxiosWrapper"; // For cancel order API call (see below)
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
-  const [order, setOrder] = useState<any | null>(null);
-  const [status, setStatus] = useState<
-    "Processing" | "Cancelled" | "Completed"
-  >("Processing");
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const router = useRouter();
+  const { data: order, isLoading, refetch } = useOrderById(id as string);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const found = storedOrders.find((o: any) => o.id === id);
-    if (found) {
-      setOrder(found);
-      setStatus(found.status || "Processing");
-    }
-  }, [id]);
-
-  const handleCancel = () => {
-    if (!order) return;
-
-    const updatedOrder = { ...order, status: "Cancelled" };
-    setOrder(updatedOrder);
-    setStatus("Cancelled");
-
-    const allOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const updatedOrders = allOrders.map((o: any) =>
-      o.id === order.id ? updatedOrder : o
-    );
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
-    setShowCancelConfirm(false);
-  };
-
-  if (!order) {
-    return <div className="mt-[116px] text-center">Loading...</div>;
-  }
-
-  const shippingCost = 0;
-  const tax = order.total * 0.1;
-  const grandTotal = order.total + shippingCost + tax;
-
+  // Use order.status from API
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "Processing":
+      case "pending":
+      case "confirmed":
         return "bg-[#E9FAFF] text-[#00A7E9]";
-      case "Cancelled":
+      case "cancelled":
         return "bg-[#FFEAEA] text-[#FF2A2A]";
-      case "Completed":
+      case "delivered":
+      case "completed":
         return "bg-[#E9FFE9] text-[#88B04B]";
+      case "shipped":
+        return "bg-[#FFF8E9] text-[#FFC107]";
       default:
         return "bg-gray-100 text-gray-500";
     }
   };
+
+  // Cancel order by calling backend API
+  const handleCancel = async () => {
+    if (!order) return;
+    setIsCancelling(true);
+    try {
+      await AxiosWrapper.put(`/api/orders/${order.orderId}/status`, {
+        status: "cancelled",
+      });
+      setShowCancelConfirm(false);
+      refetch(); // Refresh order details
+    } catch (err) {
+      // Optionally show a toast/error
+    }
+    setIsCancelling(false);
+  };
+
+  if (isLoading || !order) {
+    return <div className="mt-[116px] text-center">Loading...</div>;
+  }
+
+  // API model mapping
+  const shippingCost = order.shipping ?? 0; // use order.shipping from API
+  const tax = order.tax ?? 0;
+  const grandTotal = order.total ?? 0;
+
+  // Defensive: extract customer/shipping info from API model
+  const customer = order.customer || {};
+  const shippingAddress = order.shippingAddress || {};
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -66,27 +68,26 @@ export default function OrderDetailsPage() {
       <div className="flex justify-between items-start">
         <div>
           <p className="text-gray-600 font-medium text-sm">
-            Order Number: <span className="font-semibold">{order.id}</span>
+            Order Number: <span className="font-semibold">{order.orderId}</span>
           </p>
         </div>
         <div>
           <span
             className={`px-4 py-1 rounded-full text-sm font-semibold ${getStatusBadgeClass(
-              status
+              order.status
             )}`}
           >
-            {status}
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </span>
         </div>
       </div>
 
       {/* Product Summary */}
-      {order.items.map((item: any, index: number) => (
+      {order.items?.map((item: any, index: number) => (
         <div
           key={index}
           className="flex justify-between border-b pb-6 items-center gap-4"
         >
-          {/* Left - Product Info */}
           <div className="flex gap-4 items-start w-1/2">
             <img
               src={item.image}
@@ -98,13 +99,9 @@ export default function OrderDetailsPage() {
               {/* <p className="text-sm text-gray-500">Category: {item.category}</p> */}
             </div>
           </div>
-
-          {/* Center - Quantity */}
           <div className="w-1/6 text-center">
             <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
           </div>
-
-          {/* Right - Price */}
           <div className="w-1/6 text-right">
             <p className="text-lg font-bold">
               NPR {item.price * item.quantity}
@@ -116,42 +113,41 @@ export default function OrderDetailsPage() {
       {/* Tracking + Details */}
       <div className="flex justify-between">
         <div className="space-y-4 text-sm text-gray-700">
-          {/* Tracking */}
           <div className="flex items-center gap-2">
             <span className="font-medium">Tracking Number:</span>
-            <span className="text-blue-600 cursor-pointer">DEXNP012345678</span>
+            <span className="text-blue-600 cursor-pointer">
+              {order.trackingNumber || "DEXNP012345678"}
+            </span>
             <Copy size={14} className="text-blue-600" />
           </div>
 
-          {/* Customer Info */}
           <div className="flex items-center gap-2">
             <span>👤</span>
             <span>
-              {order.customer.name} • {order.customer.phone}
+              {customer.fullName} • {customer.phone}
               <br />
-              {order.shipping.address}, {order.shipping.city}{" "}
-              {order.shipping.zip}, {order.shipping.state},{" "}
-              {order.shipping.country}
+              {shippingAddress.address}, {shippingAddress.city}{" "}
+              {shippingAddress.state}
             </span>
           </div>
 
-          {/* Order Date */}
           <div className="flex items-center gap-2">
             <span>📅</span>
             <span>
               Order Created At:{" "}
-              {new Date(order.date).toLocaleString("en-US", {
-                year: "numeric",
-                month: "short", // or "long" / "2-digit"
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })}
+              {order.createdAt
+                ? new Date(order.createdAt).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : ""}
             </span>
           </div>
 
-          {/* Payment */}
           <div className="flex items-center gap-2">
             <span>💳</span>
             <span>
@@ -166,7 +162,7 @@ export default function OrderDetailsPage() {
           <button
             className="text-red-500 font-semibold hover:underline transition-colors duration-300"
             onClick={() => setShowCancelConfirm(true)}
-            disabled={status === "Cancelled"}
+            disabled={order.status === "cancelled" || isCancelling}
           >
             Cancel Order
           </button>
@@ -208,7 +204,7 @@ export default function OrderDetailsPage() {
                     onClick={() => setShowCancelConfirm(false)}
                   />
                   <Button
-                    text="CANCEL ORDER"
+                    text={isCancelling ? "Cancelling..." : "CANCEL ORDER"}
                     className="w-full text-center justify-center bg-[#FFFFFF] text-[#88B04B] hover:bg-[#88B04B] hover:text-[#FFFFFF] border border-[#88B04B] transition-colors duration-300"
                     onClick={handleCancel}
                   />
@@ -219,7 +215,7 @@ export default function OrderDetailsPage() {
           <div className="bg-gray-50 p-4 rounded-lg w-72 space-y-2 text-sm text-right">
             <div className="flex justify-between">
               <span className="text-gray-600">Subtotal</span>
-              <span>NPR {order.total}</span>
+              <span>NPR {order.subtotal ?? grandTotal}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Shipping</span>

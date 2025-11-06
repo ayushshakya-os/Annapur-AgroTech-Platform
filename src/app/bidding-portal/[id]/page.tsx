@@ -1,22 +1,17 @@
-// app/bidding/[id]/page.tsx
-import { notFound } from "next/navigation";
-import allProducts from "@/data/market-products.json";
-import BiddingDetail from "@/components/ui/Bidding-Portal/BiddingDetails";
-import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
+import BiddingDetailClient from "@/components/ui/Bidding-Portal/BiddingDetailClient";
 
-export default function BiddingDetailPage({
+export const dynamic = "force-dynamic"; // optional, keeps runtime rendering
+
+export default async function BiddingDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const product = allProducts.find((p) => p.id === parseInt(params.id));
-
-  if (!product) return notFound();
+  const { id } = await params; // ✅ unwrap params Promise
 
   return (
-    <section className="mt-[116px]">
-      <Breadcrumb productName={product.name} />
-      <BiddingDetail product={product} />
+    <section className="mt-[116px] px-5 md:px-10 lg:px-20 mb-10 min-h-screen">
+      <BiddingDetailClient idParam={id} />
     </section>
   );
 }

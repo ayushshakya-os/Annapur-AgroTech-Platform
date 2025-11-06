@@ -6,7 +6,9 @@
     "image": "/image/market/tomatoes.jpg",
     "short_description": "Fresh organic tomatoes from local farmers.",
     "description": "These organic tomatoes are grown without the use of synthetic fertilizers or pesticides, ensuring a natural and healthy produce. Handpicked by local farmers, they offer a rich, sweet, and tangy flavor that enhances any dish. Ideal for salads, sauces, soups, or fresh consumption, their vibrant red color signifies freshness and nutrition. Rich in vitamins A and C, as well as antioxidants like lycopene, they support skin and heart health.",
-    "category": "Vegetables"
+    "category": "Vegetables",
+    "farmerId": 1,
+    "farmerName": "Abhinav Kumar Karn"
   },
   {
     "id": 2,

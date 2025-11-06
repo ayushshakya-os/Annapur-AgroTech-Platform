@@ -5,12 +5,27 @@
   --foreground: #171717;
 }
 
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FFFFFF;
+    --background: #ffffff;
     --foreground: #000000;
   }
+}
+
+/* Hide Google Translate top banner and related tooltips */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+  display: none !important;
+}
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+/* Prevent the body from being pushed down by the hidden banner */
+html,
+body {
+  top: 0 !important;
 }
 
 body {
