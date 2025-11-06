@@ -11,12 +11,16 @@ interface OrderCardProps {
 
 const getStatusStyle = (status: string) => {
   switch (status) {
-    case "Processing":
+    case "pending":
+    case "confirmed":
       return "bg-[#E9FAFF] text-[#00A7E9]";
-    case "Cancelled":
-      return "bg-[#FFEAEA] text-[#FF2A2A]";
-    case "Completed":
+    case "delivered":
+    case "completed":
       return "bg-[#E9FFE9] text-[#88B04B]";
+    case "cancelled":
+      return "bg-[#FFEAEA] text-[#FF2A2A]";
+    case "shipped":
+      return "bg-[#FFF8E9] text-[#FFC107]";
     default:
       return "bg-gray-100 text-gray-500";
   }
@@ -65,22 +69,26 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
             order.status
           )}`}
         >
-          {order.status}
+          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
         </div>
+        {/* Status select - map backend statuses, use order.orderId
         <select
           value={order.status}
-          onChange={(e) => onStatusChange(order.id, e.target.value)}
+          onChange={(e) => onStatusChange(order.orderId, e.target.value)}
           className="border text-sm rounded px-2 py-1"
         >
-          <option value="Processing">Processing</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select> */}
         <button
           className="text-sm text-gray-700 hover:text-black font-medium flex items-center gap-1"
           onClick={() => router.push(`/market`)}
         >
-          {order.status === "Cancelled" ? "Re-Order" : "Buy Again"}
+          {order.status === "cancelled" ? "Re-Order" : "Buy Again"}
           <ChevronRight size={14} />
         </button>
       </div>
@@ -88,8 +96,10 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
   );
 }
 
-// Keep your sort function as-is
 export function sortOrdersByStatus(orders: any[], filter: string): any[] {
   if (filter === "All Orders") return orders;
-  return orders.filter((order) => order.status === filter);
+  // Make comparison case insensitive and robust
+  return orders.filter(
+    (order) => order.status.toLowerCase() === filter.toLowerCase()
+  );
 }

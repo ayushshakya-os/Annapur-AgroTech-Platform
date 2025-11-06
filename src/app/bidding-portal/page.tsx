@@ -1,13 +1,14 @@
-// src/app/bidding/page.tsx
-import Bidding from "@/components/Bidding-Portal/Bidding";
-import allProducts from "@/data/market-products.json";
+import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
+import HeaderText from "@/components/HeaderText";
+import BiddingPageClient from "@/components/ui/Bidding-Portal/BiddingPageClient";
 
 const BiddingPage = () => {
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Place Your Bid</h1>
-      <Bidding products={allProducts} />
-    </main>
+    <section className="min-h-screen mt-[116px] mb-10">
+      <Breadcrumb />
+      <HeaderText text="Place Your Bid" text2="Bidding Portal" />
+      <BiddingPageClient />
+    </section>
   );
 };
 

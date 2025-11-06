@@ -1,60 +1,52 @@
-// "use client";
+"use client";
 
-// import React, { useState } from "react";
-// import { AiOutlineArrowLeft } from "react-icons/ai";
-// import { useGetUserProfile } from "@/hooks/api/user/getProfile";
-// import CartButtons from "../Buttons/CartButtons";
-// import UserDetailEdit from "./Forms/UserDetailEdit";
-// import { ChevronLast, ChevronLeft } from "lucide-react";
+import React, { useState } from "react";
+import { AiOutlineArrowLeft } from "react-icons/ai";
+import { useGetProfile } from "@/hooks/api/my-account/useGetProfile";
+import Button from "@/components/ui/Buttons/Button";
+import { ChevronLast, ChevronLeft } from "lucide-react";
+import UserDetailEdit from "./Forms/UserDetailEdit";
+import HeaderText from "@/components/HeaderText";
 
-// const UserInfo = () => {
-//   const [activeForm, setActiveForm] = useState("myAccount");
-//   const handleEditUser = () => setActiveForm("editUser");
-//   const handleBack = () => setActiveForm("myAccount");
-//   const { data: user } = useGetUserProfile();
+const UserInfo = () => {
+  const [activeForm, setActiveForm] = useState("myAccount");
+  const handleEditUser = () => setActiveForm("editUser");
+  const handleBack = () => setActiveForm("myAccount");
+  const { data: user } = useGetProfile();
 
-//   return (
-//     <>
-//       {activeForm === "myAccount" && (
-//         <div className="space-y-2">
-//           <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3">
-//             My Account
-//           </h2>
+  return (
+    <>
+      {activeForm === "myAccount" && (
+        <div className="space-y-2">
+          <HeaderText text="My Account" className="text-left" />
 
-//           <p className="text-gray-700 font-semibold">Contact Information</p>
-//           <p className="text-gray-800">
-//             {user?.first_name} {user?.last_name}
-//           </p>
-//           <p className="text-gray-800">{user?.email}</p>
-//           <p className="text-gray-800">{user?.phone}</p>
+          <p className="text-gray-700 font-semibold">Contact Information</p>
+          <p className="text-gray-800">
+            {user?.firstName} {user?.lastName}
+          </p>
+          <p className="text-gray-800">{user?.email}</p>
+          <p className="text-gray-800">{user?.phone}</p>
 
-//           <CartButtons
-//             label="Edit User"
-//             onClick={handleEditUser}
-//             bgColor="bg-[#343434]"
-//             textColor="text-white"
-//             className="w-[200px] mt-4 cursor-pointer"
-//           />
-//         </div>
-//       )}
+          <Button
+            text="Edit"
+            onClick={handleEditUser}
+            className="w-[200px] mt-4 cursor-pointer bg-[#88B04B] text-white rounded-md hover:bg-green-600 transform ease-in-out duration-300"
+          />
+        </div>
+      )}
 
-//       {activeForm === "editUser" && (
-//         <div className="relative">
-//           <UserDetailEdit />
+      {activeForm === "editUser" && (
+        <div className="relative">
+          <UserDetailEdit />
+          <Button
+            text="Back"
+            onClick={handleBack}
+            className="w-[200px] mt-4 cursor-pointer flex items-center gap-2 bg-[#343434] text-white rounded-md hover:bg-gray-800 transform ease-in-out duration-300"
+          />
+        </div>
+      )}
+    </>
+  );
+};
 
-//           <CartButtons
-//             label="Back"
-//             onClick={handleBack}
-//             bgColor="bg-[#343434]"
-//             textColor="text-white"
-//             className="w-[200px] mt-4 cursor-pointer flex items-center gap-2"
-//             icon={<ChevronLeft size={16} />}
-//             iconPosition="left"
-//           />
-//         </div>
-//       )}
-//     </>
-//   );
-// };
-
-// export default UserInfo;
+export default UserInfo;

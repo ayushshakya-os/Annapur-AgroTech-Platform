@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useCart } from "@/lib/context/useCart";
 import {
   FaPhoneAlt,
   FaFacebook,
@@ -16,14 +15,29 @@ import Link from "next/link";
 import { FaCartShopping, FaUser } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import UserDropdown from "./UserDropdown";
-import { requestNotificationPermission } from "@/hooks/api/sendNotifications";
+import { useGetCart } from "@/hooks/api/Cart/useCart";
+import { useAuth } from "@/hooks/auth/useAuth";
+import GoogleTranslate from "./GoogleTranslate";
 
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [auth, setAuth] = useState<any>(false);
+  const [auth, setAuth] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // ✅ fetch cart based on logged-in user
+  const { user } = useAuth();
+  const userId = user?.id || ""; // adjust based on how your auth stores user
+  const { data } = useGetCart(userId);
+
+  const cart = data?.items ? data : data?.cart;
+
+  const badgeCount =
+    cart?.items?.reduce(
+      (total: number, item: { quantity: number }) => total + item.quantity,
+      0
+    ) || 0;
 
   // Check if the component is mounted on the client side
   useEffect(() => {
@@ -32,11 +46,6 @@ export default function Header() {
     if (storedAuth) {
       const parsedAuth = JSON.parse(storedAuth);
       setAuth(parsedAuth);
-
-      // Request notification permission on client side
-      if (auth?.isGuest === false) {
-        requestNotificationPermission();
-      }
     }
   }, []);
 
@@ -50,9 +59,6 @@ export default function Header() {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
-
-  const { getTotalQuantity, getUniqueItemCount } = useCart();
-  const badgeCount = getUniqueItemCount();
 
   return (
     <header className="w-full fixed  h-[115px] top-0 left-0 z-50 bg-white">
@@ -69,11 +75,16 @@ export default function Header() {
             <span>Mail Us: 3k6Mh@example.com</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <FaFacebook className="text-white" />
-          <FaInstagram className="text-white" />
-          <FaGithub className="text-white" />
-          <FaLinkedin className="text-white" />
+        <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center gap-2">
+            <FaFacebook className="text-white" />
+            <FaInstagram className="text-white" />
+            <FaGithub className="text-white" />
+            <FaLinkedin className="text-white" />
+          </div>
+          <div className="flex items-center justify-center">
+            <GoogleTranslate />
+          </div>
         </div>
       </div>
 
@@ -141,8 +152,8 @@ export default function Header() {
           <div className="hidden sm:block relative">
             <Link href="/cart">
               <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
-              {isClient && getTotalQuantity() > 0 && (
-              <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
+              {isClient && auth && badgeCount > 0 && (
+                <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
                   {badgeCount}
                 </span>
               )}
@@ -168,7 +179,7 @@ export default function Header() {
           {/* Mobile Cart Icon */}
           <Link href="/cart" className="relative">
             <FaCartShopping className="text-2xl text-[#88B04B]" />
-            {isClient && getTotalQuantity() > 0 && (
+            {isClient && auth && badgeCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-[#151515] text-[#88B04B] text-[14px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
                 {badgeCount}
               </span>

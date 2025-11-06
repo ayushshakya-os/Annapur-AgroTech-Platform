@@ -35,7 +35,10 @@ type ToastType =
   | "logout-success"
   | "cart-added"
   | "empty-cart"
-  | "order-success";
+  | "order-success"
+  | "bid-placed"
+  | "bid-error"
+  | "bid-not-sufficient";
 
 export const showAuthToast = (
   type: ToastType,
@@ -122,6 +125,29 @@ export const showAuthToast = (
           <ToastContent
             primary="Guest login activated!"
             secondary="You can browse the site without logging in."
+          />
+        );
+      case "bid-placed":
+        return (
+          <ToastContent
+            primary="Bid placed successfully!"
+            secondary="You can view your bid details in your account."
+          />
+        );
+
+      case "bid-error":
+        return (
+          <ToastContent
+            primary="Bid placement failed!"
+            secondary="Please enter a valid bid amount."
+          />
+        );
+
+      case "bid-not-sufficient":
+        return (
+          <ToastContent
+            primary="Bid placement failed!"
+            secondary="Please enter a bid higher than the current highest bid."
           />
         );
 

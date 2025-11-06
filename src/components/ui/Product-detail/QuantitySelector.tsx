@@ -1,26 +1,41 @@
-import { Minus, Plus } from "lucide-react";
-import React, { useState } from "react";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 type QuantitySelectorProps = {
+  productId?: string; // only needed for cart usage
   min?: number;
   max?: number;
   initial?: number;
-  onChange?: (quantity: number) => void;
+  onChange?: (quantity: number) => void; // still supports standalone usage
+  showRemove?: boolean; // for cart page
 };
 
 const QuantitySelector: React.FC<QuantitySelectorProps> = ({
+  productId,
   min = 1,
   max = 50,
   initial = 1,
   onChange,
+  showRemove = false,
 }) => {
+  const { user } = useAuth();
+  const userId = user?.id || "";
+  // const { updateQuantity } = useCart(userId);
   const [quantity, setQuantity] = useState(initial);
+
+  // Keep external state in sync (when cart updates refetch)
+  useEffect(() => {
+    setQuantity(initial);
+  }, [initial]);
 
   const handleDecrease = () => {
     if (quantity > min) {
       const newQty = quantity - 1;
       setQuantity(newQty);
       onChange?.(newQty);
+
+      // if (productId) updateQuantity(productId, newQty);
     }
   };
 
@@ -29,17 +44,12 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
       const newQty = quantity + 1;
       setQuantity(newQty);
       onChange?.(newQty);
+
+      // if (productId) updateQuantity(productId, newQty);
     }
   };
-
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "start",
-      }}
-    >
+    <div className="flex flex-col items-start">
       <div className="flex flex-row items-start">
         <p className="text-[#88B04B] font-semibold mb-4">
           Quantity:{" "}
@@ -55,12 +65,14 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
         >
           <Minus size={18} color="#88B04B" />
         </button>
+
         <span
           style={{ minWidth: 24, textAlign: "center", color: "#151515" }}
           className="border border-gray-300 px-8 py-1 rounded-md"
         >
           {quantity}
         </span>
+
         <button
           onClick={handleIncrease}
           disabled={quantity >= max}
