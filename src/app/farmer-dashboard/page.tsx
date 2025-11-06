@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/ui/FarmersDashboard/Sidebar";
 import AddProductForm from "../../components/ui/FarmersDashboard/AddProductForm";
 import ProductsTable from "../../components/ui/FarmersDashboard/ProductsTable";
@@ -17,11 +17,51 @@ import {
   type MyProductsParams,
 } from "@/hooks/api/FarmersDashboard/useGetFarmersProducts";
 
+// New: hook to fetch authenticated user's bids
+import { useGetMyBids } from "@/hooks/api/Bidding/useGetMyBids";
+
 type Tab = "products" | "add-product" | "bidding" | "history";
 
 // Helper for demo IDs (still used for demo bids)
 const uid = (p = "id") =>
   `${p}_${Math.random().toString(36).slice(2, 8)}${Date.now()}`;
+
+/**
+ * Convert a possibly-populated productId into a stable string id.
+ * productId from the backend may be either a string or a populated object.
+ */
+const getProductIdString = (productId: any) => {
+  if (!productId) return uid("prod");
+  if (typeof productId === "string") return productId;
+  if (typeof productId === "object") {
+    return String(productId._id ?? productId.id ?? JSON.stringify(productId));
+  }
+  return String(productId);
+};
+
+/**
+ * Safely derive a full name string from a possibly-populated user object
+ * or a plain string id.
+ */
+const getUserDisplayName = (userOrId: any) => {
+  if (!userOrId) return "";
+  if (typeof userOrId === "string") return userOrId;
+  if (typeof userOrId === "object") {
+    const first = userOrId.firstName ?? userOrId.first_name ?? "";
+    const last = userOrId.lastName ?? userOrId.last_name ?? "";
+    const email = userOrId.email ?? "";
+    const full = `${first} ${last}`.trim();
+    if (full) return full;
+    if (email) return email;
+    if (userOrId._id) return String(userOrId._id);
+    try {
+      return JSON.stringify(userOrId);
+    } catch {
+      return String(userOrId);
+    }
+  }
+  return String(userOrId);
+};
 
 export default function FarmerDashboardPage() {
   const [tab, setTab] = useState<Tab>("products");
@@ -37,10 +77,87 @@ export default function FarmerDashboardPage() {
 
   const products: Product[] = myProducts?.products ?? [];
 
-  // Demo bids data (independent of products; keep empty by default)
+  // Bids grouped by productId
+  // Previously this was purely local/demo; now we will populate it from useGetMyBids
   const [bidsByProduct, setBidsByProduct] = useState<Record<string, Bid[]>>({});
 
   const [selectedProductId, setSelectedProductId] = useState<string>("all");
+
+  // Fetch bids for authenticated user (farmer role)
+  const {
+    data: bidsData,
+    isLoading: isBidsLoading,
+    isError: isBidsError,
+    error: bidsError,
+    refetch: refetchBids,
+  } = useGetMyBids(
+    {
+      role: "farmer",
+      page: 1,
+      limit: 200,
+      sort: "-createdAt",
+    },
+    {
+      staleTime: 5_000,
+    }
+  );
+
+  // Normalize and group incoming bids by product id when the hook returns.
+  useEffect(() => {
+    if (!bidsData?.bids || !Array.isArray(bidsData.bids)) return;
+
+    const next: Record<string, Bid[]> = {};
+
+    for (const raw of bidsData.bids) {
+      // Defensive normalisation for numeric fields and dates:
+      const normalized: Bid = {
+        ...raw,
+        initialPrice:
+          typeof raw.initialPrice === "number"
+            ? raw.initialPrice
+            : Number(raw.initialPrice ?? 0),
+        offeredPrice:
+          typeof raw.offeredPrice === "number"
+            ? raw.offeredPrice
+            : Number(raw.offeredPrice ?? 0),
+        createdAt: raw.createdAt
+          ? String(raw.createdAt)
+          : new Date().toISOString(),
+        // Ensure productName isn't an object (some components rely on productName)
+        productName:
+          raw.productName ??
+          (raw.productId && typeof raw.productId === "object"
+            ? typeof (raw.productId as any).name === "string"
+              ? (raw.productId as any).name
+              : String((raw.productId as any)._id ?? "")
+            : undefined),
+        // New: ensure buyerName/farmerName are strings so components don't render objects
+        buyerName:
+          raw.buyerName ??
+          (raw.buyerId ? getUserDisplayName(raw.buyerId) : undefined),
+        farmerName:
+          raw.farmerName ??
+          (raw.farmerId ? getUserDisplayName(raw.farmerId) : undefined),
+        // Also coerce buyerId/farmerId to stable string ids if needed for lookups
+        buyerId:
+          raw.buyerId && typeof raw.buyerId === "object"
+            ? String((raw.buyerId as any)._id ?? (raw.buyerId as any).id ?? "")
+            : raw.buyerId,
+        farmerId:
+          raw.farmerId && typeof raw.farmerId === "object"
+            ? String(
+                (raw.farmerId as any)._id ?? (raw.farmerId as any).id ?? ""
+              )
+            : raw.farmerId,
+      } as Bid;
+
+      const pid = getProductIdString(raw.productId);
+      next[pid] = next[pid] || [];
+      next[pid].push(normalized);
+    }
+
+    setBidsByProduct(next);
+  }, [bidsData?.bids]);
 
   const flatBids = useMemo(() => {
     const ids =
@@ -84,17 +201,10 @@ export default function FarmerDashboardPage() {
 
   // Local-only toggle for UI (not persisted yet)
   function toggleBiddable(p: Product) {
-    // Since persistence isn't implemented here, just flip locally in the table view by mapping before render
-    const next = products.map((x) =>
-      x._id === p._id ? { ...x, isBiddable: !x.isBiddable } : x
-    );
-    // We don't keep local products state; to reflect UI immediately, you can optimistically mutate the query cache:
-    // Optionally: import useQueryClient and setQueryData here, or keep as-is and implement toggle backend later.
-    // For simplicity, we’ll request a refetch (cheap and consistent).
-    // If you add a real PUT /products/:id later, call it then refetch.
     void refetchProducts();
   }
 
+  // Farmer actions (optimistic local updates)
   function acceptBid(bidId: string) {
     setBidsByProduct((prev) => {
       const next = { ...prev };
@@ -105,6 +215,8 @@ export default function FarmerDashboardPage() {
       }
       return next;
     });
+
+    // TODO: call backend endpoint (e.g., PUT /bids/:id/accept) and refetchBids() on success
   }
 
   function rejectBid(bidId: string) {
@@ -117,6 +229,8 @@ export default function FarmerDashboardPage() {
       }
       return next;
     });
+
+    // TODO: call backend endpoint (e.g., PUT /bids/:id/reject) and refetchBids() on success
   }
 
   function counterBid(bidId: string, price: number) {
@@ -131,6 +245,8 @@ export default function FarmerDashboardPage() {
       }
       return next;
     });
+
+    // TODO: call backend endpoint (e.g., PUT /bids/:id/counter) and refetchBids() on success
   }
 
   return (
@@ -205,15 +321,37 @@ export default function FarmerDashboardPage() {
             )}
 
             {tab === "bidding" && (
-              <BiddingSection
-                products={products}
-                bidsByProduct={bidsByProduct}
-                selectedProductId={selectedProductId}
-                setSelectedProductId={setSelectedProductId}
-                onAccept={acceptBid}
-                onReject={rejectBid}
-                onCounter={counterBid}
-              />
+              <>
+                {/* Simple bids loading/error UIs */}
+                {isBidsLoading && (
+                  <div className="rounded-md bg-amber-50 text-amber-800 p-3 text-sm">
+                    Loading bids...
+                  </div>
+                )}
+                {isBidsError && (
+                  <div className="rounded-md bg-red-50 text-red-700 p-3 text-sm">
+                    {(bidsError as Error)?.message}
+                    <div className="mt-2">
+                      <button
+                        onClick={() => void refetchBids()}
+                        className="rounded-md border px-3 py-1 text-sm"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <BiddingSection
+                  products={products}
+                  bidsByProduct={bidsByProduct}
+                  selectedProductId={selectedProductId}
+                  setSelectedProductId={setSelectedProductId}
+                  onAccept={acceptBid}
+                  onReject={rejectBid}
+                  onCounter={counterBid}
+                />
+              </>
             )}
 
             {tab === "history" && <BidHistory bids={bidHistory} />}

@@ -9,6 +9,7 @@ export type Negotiation = {
 };
 
 export type Bid = {
+  [x: string]: any;
   _id: string;
   productId: string;
   buyerId: string;

@@ -14,7 +14,6 @@ export const useGetBidsForProduct = (
   return useQuery({
     queryKey: ["bids", String(productId)],
     queryFn: async () => {
-      // Adjust path if mounted differently (e.g., /api/bids/product/:productId)
       const { data } = await AxiosWrapper.get<GetBidsResponse>(
         `/bids/product/${productId}`
       );
