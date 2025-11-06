@@ -1,53 +1,87 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiEdit, FiCheck, FiX } from "react-icons/fi";
 import clsx from "clsx";
 import type { Bid, BidStatus } from "./../../../lib/types/type";
+import { useGetMyBids } from "@/hooks/api/Bidding/useGetMyBids";
 
+/**
+ * Helper uid (kept for compatibility with demo seeds if needed)
+ */
 const uid = (p = "id") =>
   `${p}_${Math.random().toString(36).slice(2, 8)}${Date.now()}`;
 
+/**
+ * Utility to safely get a display string for the product.
+ * The backend sometimes populates productId as an object (populated),
+ * other times it's a string id. Rendering the object directly causes
+ * "Objects are not valid as a React child" runtime errors.
+ */
+const getProductDisplay = (bid: any) => {
+  // If there's an explicit productName field use it
+  if (bid.productName) return String(bid.productName);
+  // If productId is an object with a name, use that
+  if (bid.productId && typeof bid.productId === "object") {
+    if ("name" in bid.productId && bid.productId.name)
+      return String(bid.productId.name);
+    if ("_id" in bid.productId) return String(bid.productId._id);
+    // fallback to JSON string (should rarely happen)
+    try {
+      return JSON.stringify(bid.productId);
+    } catch {
+      return String(bid.productId);
+    }
+  }
+  // fallback to string id
+  return String(bid.productId ?? uid("prod"));
+};
+
 export default function BiddingList() {
-  // Demo data — replace with your API data
-  const [bids, setBids] = useState<Bid[]>([
+  // Fetch authenticated user's bids (assumes this is a buyer dashboard).
+  // Adjust role if this component is used for farmers.
+  const { data, isLoading, isError, error, refetch } = useGetMyBids(
     {
-      _id: uid("bid"),
-      productId: uid("prod"),
-      productName: "Organic Tomatoes",
-      buyerId: "me",
-      buyerName: "You",
-      initialPrice: 120,
-      offeredPrice: 115,
-      negotiationId: uid("neg"),
-      status: "pending",
-      createdAt: new Date().toISOString(),
+      role: "buyer",
+      page: 1,
+      limit: 50,
+      sort: "-createdAt",
     },
     {
-      _id: uid("bid"),
-      productId: uid("prod"),
-      productName: "Golden Wheat",
-      buyerId: "me",
-      buyerName: "You",
-      initialPrice: 55,
-      offeredPrice: 52,
-      negotiationId: uid("neg"),
-      status: "countered",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: uid("bid"),
-      productId: uid("prod"),
-      productName: "Raw Honey",
-      buyerId: "me",
-      buyerName: "You",
-      initialPrice: 380,
-      offeredPrice: 370,
-      negotiationId: uid("neg"),
-      status: "accepted",
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ]);
+      staleTime: 5_000,
+    }
+  );
+
+  // Local state to allow optimistic UI interactions and editing modal
+  const [bids, setBids] = useState<Bid[]>([]);
+
+  // Normalize/guard fetched data to avoid rendering objects directly in JSX
+  useEffect(() => {
+    if (!data?.bids || !Array.isArray(data.bids)) return;
+
+    const normalized = data.bids.map((b: any) => {
+      const initialPrice =
+        typeof b.initialPrice === "number"
+          ? b.initialPrice
+          : Number(b.initialPrice ?? 0);
+      const offeredPrice =
+        typeof b.offeredPrice === "number"
+          ? b.offeredPrice
+          : Number(b.offeredPrice ?? 0);
+
+      return {
+        ...b,
+        // ensure we have a productName string to render
+        productName: getProductDisplay(b),
+        initialPrice,
+        offeredPrice,
+        // make sure createdAt is a string
+        createdAt: b.createdAt ? String(b.createdAt) : new Date().toISOString(),
+      } as Bid;
+    });
+
+    setBids(normalized);
+  }, [data?.bids]);
 
   const [activeTab, setActiveTab] = useState<BidStatus>("pending");
   const [editingBid, setEditingBid] = useState<Bid | null>(null);
@@ -72,27 +106,32 @@ export default function BiddingList() {
     [bids, activeTab]
   );
 
-  // Handlers — UI only for now. Replace with your backend calls later.
-  // - Place/update offer: POST /api/bids { negotiationId, offeredPrice }
-  // - Accept farmer counter (buyer): POST /api/bids/:id/accept-buyer
+  // Handlers — UI only for now.
+  // Replace with real mutations (useMutation) to:
+  // - POST /bids/place  OR POST /bids/:id/accept-buyer etc.
   function updateOffer(bidId: string, offeredPrice: number) {
+    // optimistic update locally
     setBids((prev) =>
       prev.map((b) =>
         b._id === bidId
           ? {
               ...b,
               offeredPrice,
-              status: "pending", // buyer re-offered; now awaiting farmer response
+              status: "pending", // buyer re-offered; awaiting farmer
             }
           : b
       )
     );
+
+    // TODO: call API to update/create bid and refetch or update cache
   }
 
   function acceptCounter(bidId: string) {
     setBids((prev) =>
       prev.map((b) => (b._id === bidId ? { ...b, status: "accepted" } : b))
     );
+
+    // TODO: call POST /bids/:id/accept-buyer and refetch() or update cache
   }
 
   function openEdit(bid: Bid) {
@@ -103,6 +142,35 @@ export default function BiddingList() {
   function closeEdit() {
     setEditingBid(null);
     setOfferValue("");
+  }
+
+  // Render loading / error states while fetching
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border bg-white shadow-sm p-6">
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 w-1/3 bg-gray-200 rounded" />
+          <div className="h-3 w-2/3 bg-gray-200 rounded" />
+          <div className="h-64 bg-gray-100 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border bg-white shadow-sm p-6">
+        <div className="text-red-600">
+          Failed to load bids: {(error as Error)?.message}
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -149,7 +217,7 @@ export default function BiddingList() {
                 {/* Product name + time */}
                 <div className="md:w-1/3">
                   <div className="font-medium text-gray-800">
-                    {b.productName || b.productId}
+                    {b.productName || getProductDisplay(b)}
                   </div>
                   <div className="text-xs text-gray-500">
                     {new Date(b.createdAt || 0).toLocaleString()}
@@ -162,13 +230,13 @@ export default function BiddingList() {
                     <span className="text-gray-700">
                       Initial:{" "}
                       <span className="font-semibold">
-                        Rs. {b.initialPrice.toFixed(2)}
+                        Rs. {Number(b.initialPrice).toFixed(2)}
                       </span>
                     </span>
                     <span className="text-gray-700">
                       Latest offer:{" "}
                       <span className="font-semibold">
-                        Rs. {b.offeredPrice.toFixed(2)}
+                        Rs. {Number(b.offeredPrice).toFixed(2)}
                       </span>
                     </span>
                     <span
@@ -249,7 +317,7 @@ export default function BiddingList() {
             <p className="mt-1 text-sm text-gray-600">
               Product:{" "}
               <span className="font-medium">
-                {editingBid.productName || editingBid.productId}
+                {editingBid.productName || getProductDisplay(editingBid)}
               </span>
             </p>
             <div className="mt-4">
@@ -264,10 +332,12 @@ export default function BiddingList() {
                     e.target.value === "" ? "" : Number(e.target.value)
                   )
                 }
-                placeholder={`e.g., ${editingBid.offeredPrice.toFixed(2)}`}
+                placeholder={`e.g., ${Number(editingBid.offeredPrice).toFixed(
+                  2
+                )}`}
               />
               <p className="mt-2 text-xs text-gray-500">
-                Initial price: Rs. {editingBid.initialPrice.toFixed(2)}
+                Initial price: Rs. {Number(editingBid.initialPrice).toFixed(2)}
               </p>
             </div>
             <div className="mt-5 flex justify-end gap-2">
@@ -281,7 +351,7 @@ export default function BiddingList() {
                 disabled={offerValue === "" || Number(offerValue) <= 0}
                 onClick={() => {
                   if (offerValue !== "" && Number(offerValue) > 0) {
-                    // Real app: POST /api/bids with { negotiationId, offeredPrice }
+                    // Real app: call the API (e.g., POST /bids/place or PUT /bids/:id) and then refetch()
                     updateOffer(editingBid._id, Number(offerValue));
                     closeEdit();
                   }
