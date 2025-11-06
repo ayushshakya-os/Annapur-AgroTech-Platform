@@ -343,13 +343,15 @@ export default function FarmerDashboardPage() {
                 )}
 
                 <BiddingSection
-                  products={products}
-                  bidsByProduct={bidsByProduct}
-                  selectedProductId={selectedProductId}
-                  setSelectedProductId={setSelectedProductId}
-                  onAccept={acceptBid}
-                  onReject={rejectBid}
-                  onCounter={counterBid}
+                  {...({
+                    products,
+                    bidsByProduct,
+                    selectedProductId,
+                    setSelectedProductId,
+                    onAccept: acceptBid,
+                    onReject: rejectBid,
+                    onCounter: counterBid,
+                  } as any)}
                 />
               </>
             )}
