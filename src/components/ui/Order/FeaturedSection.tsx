@@ -55,7 +55,10 @@ export default function FeaturedProducts() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 ">
           {randomProducts.slice(0, 3).map((product) => (
-            <FeaturedProductsCard key={product.id} product={product} />
+            <FeaturedProductsCard
+              key={product.id}
+              product={{ ...product, _id: product.id }}
+            />
           ))}
         </div>
       </div>
