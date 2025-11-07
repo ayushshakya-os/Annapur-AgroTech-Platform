@@ -16,9 +16,9 @@ interface ToggleDescriptionProps {
 export default function ToggleDescription({ product }: ToggleDescriptionProps) {
   const [activeTab, setActiveTab] = useState("Details");
 
-  const productReviews = reviewsData.find(
-    (review) => review.productId === product.id.toString()
-  )?.reviews;
+  const productReviews =
+    reviewsData.find((review) => Number(review.productId) === product.id)
+      ?.reviews ?? [];
 
   return (
     <div className="mt-3">

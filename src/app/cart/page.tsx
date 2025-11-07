@@ -1,69 +1,89 @@
 "use client";
-
 import React from "react";
-import { useCart } from "@/lib/context/useCart";
 import { FaCartShopping } from "react-icons/fa6";
 import { ChevronRight, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CartSummary from "@/components/ui/Cart/CartSummary";
+import { useAuth } from "@/hooks/auth/useAuth";
+import {
+  useGetCart,
+  useUpdateCartItem,
+  useRemoveFromCart,
+  useClearCart,
+} from "@/hooks/api/Cart/useCart";
 
 const CartPage: React.FC = () => {
-  const { cart, removeItem, updateQuantity, clearCart } = useCart();
-
-  const handleRemove = (id: string) => {
-    removeItem(id);
-  };
-
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    updateQuantity(id, quantity);
-  };
-
-  const handleClearCart = () => {
-    clearCart();
-  };
-
-  const calculateTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
+  const { user } = useAuth();
+  const userId = user?.id || "";
   const router = useRouter();
 
-  const handleContinueShopping = () => {
-    router.push("/market");
-  };
+  const { data: cart, isLoading } = useGetCart(userId);
+  const updateCartItem = useUpdateCartItem();
+  const removeFromCart = useRemoveFromCart();
+  const clearCart = useClearCart();
+
+  const handleContinueShopping = () => router.push("/market");
+
+  if (!userId) {
+    return (
+      <div className="max-w-5xl mx-auto py-8 px-4 mt-[116px] text-center">
+        <h1 className="text-xl text-gray-700">
+          Please log in to view your cart.
+        </h1>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto py-8 px-4 mt-[116px] text-center">
+        <p>Loading cart...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 mt-[116px]">
       <div className="flex flex-row items-start justify-between">
         <h1 className="text-2xl font-bold text-[#88B04B] mb-8">Your Cart</h1>
-        <button
-          className="bg-gray-300 text-[#88B04B] hover:opacity-60 px-6 py-2 rounded-lg font-semibold"
-          onClick={handleClearCart}
-        >
-          Clear Cart
-        </button>
-      </div>
-      {cart.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="flex flex-col items-center justify-center h-70 w-70 mx-auto rounded-full bg-gray-100 shadow-md">
-            <FaCartShopping className="text-6xl text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-700 text-center text-2xl mt-5">
-              Your cart is empty.
-            </p>
-          </div>
+        {cart.items.length > 0 && (
           <button
-            onClick={handleContinueShopping}
-            className="mt-4 flex items-center gap-2 bg-[#88B04B] text-white px-6 py-2 rounded-lg font-semibold hover:opacity-80 transition-colors"
+            className="bg-gray-300 text-[#88B04B] hover:opacity-60 px-6 py-2 rounded-lg font-semibold"
+            onClick={() => clearCart.mutate(userId)}
           >
-            <span>Continue Shopping</span> <ChevronRight />
+            Clear Cart
+          </button>
+        )}
+      </div>
+
+      {!cart || cart.items.length === 0 ? (
+        <div className="col-span-full text-center py-12">
+          <img
+            src="/image/market/detective.webp"
+            alt="No products found"
+            className="mx-auto mb-6 w-40 h-40 object-contain opacity-80"
+          />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            We couldn't find any items in your cart.
+          </h2>
+          <p className="text-gray-500">
+            Try adding some products to your cart first.
+          </p>
+          <button
+            className="mt-6 bg-[#88B04B] text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors"
+            onClick={handleContinueShopping}
+          >
+            <span className="flex items-center gap-2">
+              <FaCartShopping size={18} /> Continue Shopping
+            </span>
           </button>
         </div>
       ) : (
         <>
           <ul className="space-y-4">
-            {cart.map((item) => (
+            {cart.items.map((item: any) => (
               <li
-                key={item.id}
+                key={item.productId._id}
                 className="flex items-center justify-between bg-gray-100 p-4 rounded-lg shadow-md"
               >
                 <div className="flex items-center gap-4">
@@ -79,40 +99,45 @@ const CartPage: React.FC = () => {
                     <p className="text-[#88B04B] font-bold">
                       Price: NPR {item.price}
                     </p>
-                    <p>Quantity: {item.quantity}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <button
                     className="disabled:opacity-50 h-8 w-8 bg-gray-200 rounded-full shadow-md flex items-center justify-center disabled:cursor-not-allowed hover:bg-gray-300 transition-colors"
-                    onClick={() =>
-                      handleUpdateQuantity(item.id, item.quantity - 1)
-                    }
                     disabled={item.quantity === 1}
+                    onClick={() =>
+                      updateCartItem.mutate({
+                        userId,
+                        productId: item.productId._id,
+                        quantity: item.quantity - 1,
+                      })
+                    }
                   >
                     <Minus size={18} color="#88B04B" />
                   </button>
-                  <span
-                    style={{
-                      minWidth: 24,
-                      textAlign: "center",
-                      color: "#151515",
-                    }}
-                    className="border border-gray-300 px-8 py-1 rounded-md"
-                  >
+                  <span className="border border-gray-300 px-8 py-1 rounded-md">
                     {item.quantity}
                   </span>
                   <button
                     className="disabled:opacity-50 h-8 w-8 bg-gray-200 rounded-full shadow-md flex items-center justify-center disabled:cursor-not-allowed hover:bg-gray-300 transition-colors"
                     onClick={() =>
-                      handleUpdateQuantity(item.id, item.quantity + 1)
+                      updateCartItem.mutate({
+                        userId,
+                        productId: item.productId._id,
+                        quantity: item.quantity + 1,
+                      })
                     }
                   >
                     <Plus size={18} color="#88B04B" />
                   </button>
                   <button
                     className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                    onClick={() => handleRemove(item.id)}
+                    onClick={() =>
+                      removeFromCart.mutate({
+                        userId,
+                        productId: item.productId._id,
+                      })
+                    }
                   >
                     Remove
                   </button>
@@ -120,7 +145,13 @@ const CartPage: React.FC = () => {
               </li>
             ))}
           </ul>
-          <CartSummary />
+
+          <CartSummary
+            subtotal={cart.subtotal}
+            shipping={cart.shipping}
+            tax={cart.tax}
+            total={cart.total}
+          />
         </>
       )}
     </div>

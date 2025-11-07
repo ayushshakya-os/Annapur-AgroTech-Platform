@@ -1,28 +1,27 @@
 "use client";
-import { useState } from "react";
 import HeaderText from "@/components/HeaderText";
 import TextInput from "@/components/TextInput";
-import { FaEnvelope, FaPhone, FaUser } from "react-icons/fa";
-import zod from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   contactSchema,
   ContactFormData,
 } from "@/lib/validation/ContactUsForm/contactSchema";
+import { showToast } from "../Toasts/toast";
 
 export default function ContactUs() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
 
   const onSubmit = (data: ContactFormData) => {
-    console.log(data);
-    alert("Message sent!");
+    showToast("success", "Message sent successfully!");
+    reset();
   };
   return (
     <div

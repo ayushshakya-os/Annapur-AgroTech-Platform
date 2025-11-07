@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,10 +12,26 @@ import ShippingAddress from "@/components/ui/Checkout/ShippingAddress";
 import Payment from "@/components/ui/Checkout/Payment";
 import { LoginButton } from "../Buttons/LoginButton";
 import { showAuthToast } from "../Toasts/ToastMessage";
-import { useCart } from "@/lib/context/useCart";
+import { useGetCart } from "@/hooks/api/Cart/useCart";
+import { useClearCart } from "@/hooks/api/Cart/useCart";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/auth/useAuth";
+import { useCreateOrder } from "@/hooks/api/Checkout/useCreateOrder";
+import { showToast } from "../Toasts/toast";
+import { useGetAddresses } from "@/hooks/api/my-account/Address/useGetAddress";
+import { useGetProfile } from "@/hooks/api/my-account/useGetProfile";
+import UserAddressSelector from "./UserAddressSelector";
 
 export default function CheckoutForm() {
+  const { user } = useAuth();
+  const userId = user?.id || "current";
+  const { data: profile } = useGetProfile();
+  const { data: addresses = [] } = useGetAddresses(userId);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("new");
+  const { data: cart = [], refetch } = useGetCart(userId);
+  const clearCart = useClearCart();
+  const createOrder = useCreateOrder(userId);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -24,51 +40,87 @@ export default function CheckoutForm() {
     setValue,
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(CheckoutFormSchema),
+    defaultValues: {
+      selectedAddressId, // keep track of choice
+    },
   });
-  const { cart, clearCart } = useCart();
-  const router = useRouter();
-
-  const onSubmit = (data: CheckoutFormData) => {
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: CheckoutFormData) => {
+    if (!user) {
+      showToast("error", "Please log in to place an order.");
+      return;
+    }
     if (cart.length === 0) {
-      showAuthToast("empty-cart");
+      showToast("error", "Your cart is empty.");
       return;
     }
 
-    const newOrder = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      items: cart,
-      total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-      customer: {
-        name: data.fullName || "",
-        email: data.email,
-        phone: data.phone,
-      },
-      shipping: {
+    let shippingAddress;
+    if (selectedAddressId !== "new") {
+      // Use the address the user selected from their saved addresses
+      const selected = addresses.find(
+        (a: any) => String(a._id) === selectedAddressId
+      );
+      if (!selected) {
+        showToast("error", "Selected address not found.");
+        return;
+      }
+      shippingAddress = {
+        address: selected.address,
+        city: selected.city,
+        state: selected.state,
+      };
+    } else {
+      // Use the data entered in the form
+      shippingAddress = {
         address: data.address,
         city: data.city,
         state: data.state,
+      };
+    }
+
+    const orderPayload = {
+      customer: {
+        fullName: data.fullName || profile?.fullName,
+        email: data.email || profile?.email,
+        phone: data.phone || profile?.phone,
       },
+      shippingAddress,
       paymentMethod: data.paymentMethod,
     };
 
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    localStorage.setItem(
-      "orders",
-      JSON.stringify([newOrder, ...existingOrders])
-    );
-
-    clearCart();
-    showAuthToast("order-success");
-    router.push(`/order-success?orderId=${newOrder.id}`);
+    try {
+      const result = await createOrder.mutateAsync(orderPayload);
+      clearCart.mutate(userId);
+      showAuthToast("order-success");
+      router.push(`/order-success?orderId=${result.order.orderId}`);
+    } catch (err: any) {
+      showToast("error", "Failed to create order.");
+    }
   };
+
+  useEffect(() => {
+    setValue("selectedAddressId", selectedAddressId);
+  }, [selectedAddressId, setValue]);
 
   return (
     <section className="w-full md:w-1/2 p-6">
+      {user && addresses.length > 0 && (
+        <UserAddressSelector
+          user={profile}
+          addresses={addresses.map((a: any) => ({ ...a, id: String(a._id) }))} // normalize
+          selectedAddressId={selectedAddressId}
+          onSelectAddress={(id) => setSelectedAddressId(String(id))}
+        />
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <ContactInfo register={register} errors={errors} />
-        <ShippingAddress register={register} errors={errors} />
+        {/* Only show form if "new" is selected or no addresses */}
+        {(selectedAddressId === "new" || addresses.length === 0) && (
+          <>
+            <ContactInfo register={register} errors={errors} />
+            <ShippingAddress register={register} errors={errors} />
+          </>
+        )}
         <Payment
           register={register}
           errors={errors}

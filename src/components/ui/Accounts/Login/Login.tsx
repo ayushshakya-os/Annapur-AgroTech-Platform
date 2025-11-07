@@ -15,12 +15,13 @@ import TextInput from "@/components/TextInput";
 import PasswordInput from "@/components/PasswordInput";
 import CheckboxInput from "@/components/CheckboxInput";
 import { showAuthToast } from "../../Toasts/ToastMessage";
-import { simulateUserLogin } from "@/hooks/api/Account/simulateUserLogin";
 import { FcGoogle } from "react-icons/fc";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useLogin } from "@/hooks/api/Account/useLogin";
 import { auth } from "@/lib/firebase";
 
 export default function Login() {
+  const { login, loading: loginLoading, error: loginError } = useLogin();
   const {
     register,
     handleSubmit,
@@ -39,11 +40,10 @@ export default function Login() {
 
   const router = useRouter();
 
-  const onSubmit = (data: LoginSchemaType) => {
+  const onSubmit = async (data: LoginSchemaType) => {
     console.log("Login submitted with data:", data);
 
-    const { email, password } = data;
-    const result = simulateUserLogin({ email, password });
+    const result = await login(data.email, data.password);
 
     if (result.success) {
       showAuthToast("login");

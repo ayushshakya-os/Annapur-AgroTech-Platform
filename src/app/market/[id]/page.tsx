@@ -1,53 +1,35 @@
+"use client";
+
+import * as React from "react";
 import Breadcrumb from "@/components/BreadCrumbs/BreadCrumb";
 import ProductDetail from "@/components/ui/Product-detail/ProductDetail";
-import products from "@/data/market-products.json";
+import { useGetProductById } from "@/hooks/api/Market/useGetProductById";
 import { notFound } from "next/navigation";
 import ToggleDescription from "@/components/ui/Product-detail/ToggleDescription";
+import Loading from "./loading";
 
-
-export async function generateStaticParams() {
-  return products.map((product) => ({
-    id: product.id.toString(), // Convert number → string
-    slug: product.name.toLowerCase().replace(/\s+/g, "-"),
-  }));
-}
-
-export async function generateMetadata(props: {
-  params: { id: string; slug: string };
+export default function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string; slug: string }>;
 }) {
-  const params = await props.params;
-  const product = products.find((p) => p.id.toString() === params.id);
+  // unwrap the promise (Next.js 15+ requirement)
+  const { id, slug } = React.use(params);
 
-  if (!product) return {};
+  // Fetch product from backend using React Query hook
+  const { data: product, isLoading, error } = useGetProductById(id);
 
-  return {
-    title: `${product.name} | Marketplace`,
-    description: product.short_description,
-    openGraph: {
-      title: product.name,
-      description: product.short_description,
-      images: [
-        {
-          url: product.image,
-          width: 800,
-          height: 600,
-        },
-      ],
-    },
-  };
-}
-
-export default async function ProductPage(props: {
-  params: { id: string; slug: string };
-}) {
-  const params = await props.params;
-  const product = products.find((p) => p.id.toString() === params.id);
-
+  if (isLoading) return <Loading />;
+  if (error)
+    return (
+      <div className="text-center py-12 text-red-500">
+        Error loading product
+      </div>
+    );
   if (!product) return notFound();
 
   return (
     <div className="mt-[116px]">
-
       <Breadcrumb productName={product.name} />
       <ProductDetail product={product} />
       <ToggleDescription product={product} />

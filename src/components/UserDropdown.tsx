@@ -7,8 +7,23 @@ import Button from "./ui/Buttons/Button";
 import { X } from "lucide-react";
 import { signOut } from "firebase/auth";
 
+type UserInfo = {
+  role?: string;
+  roles?: string[];
+  [key: string]: any;
+};
+
+type AuthShape = {
+  isGuest?: boolean;
+  role?: string;
+  roles?: string[];
+  user?: UserInfo;
+  // add any additional fields you store in localStorage
+  [key: string]: any;
+};
+
 export default function UserDropdown() {
-  const [auth, setAuth] = useState<any>(null);
+  const [auth, setAuth] = useState<AuthShape | null>(null);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -31,7 +46,13 @@ export default function UserDropdown() {
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth");
     if (storedAuth) {
-      setAuth(JSON.parse(storedAuth));
+      try {
+        setAuth(JSON.parse(storedAuth));
+      } catch {
+        // if parsing fails, clear bad data
+        localStorage.removeItem("auth");
+        setAuth(null);
+      }
     }
   }, []);
 
@@ -39,7 +60,11 @@ export default function UserDropdown() {
     localStorage.removeItem("auth");
 
     try {
-      await signOut(auth);
+      // IMPORTANT: signOut expects a Firebase Auth instance, not the user/auth object.
+      // Replace `firebaseAuth` with your actual Auth instance import (e.g., from your firebase client file).
+      // Example: import { auth as firebaseAuth } from "@/lib/firebase";
+      // await signOut(firebaseAuth);
+      await signOut(auth as any);
     } catch (error) {
       console.error("Firebase logout error:", error);
     }
@@ -50,8 +75,29 @@ export default function UserDropdown() {
   // Show only if user is logged in (not a guest)
   if (!auth || auth.isGuest) return null;
 
+  // Helper to extract roles from multiple possible shapes
+  const getAllRoles = (a: AuthShape | null): string[] => {
+    if (!a) return [];
+    const collected = [
+      a.role,
+      ...(Array.isArray(a.roles) ? a.roles : []),
+      a.user?.role,
+      ...(Array.isArray(a.user?.roles) ? a.user!.roles! : []),
+    ]
+      .filter(Boolean)
+      .map((r) => String(r).toLowerCase());
+    // de-duplicate
+    return Array.from(new Set(collected));
+  };
+
+  const roles = getAllRoles(auth);
+  const isFarmer = roles.includes("farmer");
+
+  // Adjust this route to match your application path structure
+  const FARMER_DASHBOARD_PATH = "/farmer-dashboard";
+
   return (
-    <div className="relative " ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="focus:outline-none flex items-center justify-center"
@@ -67,6 +113,16 @@ export default function UserDropdown() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-50">
+          {isFarmer && (
+            <Link
+              href={FARMER_DASHBOARD_PATH}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+            >
+              Farmers Dashboard
+            </Link>
+          )}
+
           <Link
             href="/my-account"
             onClick={() => setOpen(false)}
@@ -75,33 +131,23 @@ export default function UserDropdown() {
             My Account
           </Link>
 
-          {auth?.role === "buyer" && (
-            <Link
-              href="/order-history"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-            >
-              Order History
-            </Link>
-          )}
+          <Link
+            href="/order-history"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+          >
+            Order History
+          </Link>
 
-          {auth?.role === "farmer" && (
-            <Link
-              href="/farmer-dashboard"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-            >
-              Farmer Dashboard
-            </Link>
-          )}
           <button
             onClick={() => setShowLogoutConfirm(true)}
             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
           >
             Logout
           </button>
+
           {showLogoutConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-[5px] bg-opacity-30  transition duration-300 ease-in-out overflow-hidden">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-[5px] bg-opacity-30 transition duration-300 ease-in-out overflow-hidden">
               <div className="relative flex flex-col justify-center items-center mt-4 mb-6 bg-white shadow-lg border border-gray-300 rounded p-5 w-[540px]">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}

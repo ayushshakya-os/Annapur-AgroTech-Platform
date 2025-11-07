@@ -1,23 +1,22 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import OrderCard, { sortOrdersByStatus } from "@/components/ui/Order/OrderCard";
+import { useAuth } from "@/hooks/auth/useAuth";
+import { useUserOrders } from "@/hooks/api/Checkout/useUserOrder";
 
 export default function OrderHistoryPage() {
-  const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState("All Orders");
+  const { user } = useAuth();
+  const userId = user?.id || "current";
+  const { data: orders = [], isLoading } = useUserOrders(userId);
 
-  useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    setOrders(storedOrders);
-  }, []);
-
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    const updatedOrders = orders.map((order) =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    // Optionally, call backend to update status, then refetch orders
+    // Example:
+    // await axios.put(`/api/orders/${orderId}/status`, { status: newStatus });
+    // refetch();
+    // For demo, not implemented here
   };
 
   return (
@@ -29,19 +28,23 @@ export default function OrderHistoryPage() {
           onChange={(e) => setFilter(e.target.value)}
           className="border border-gray-300 px-4 py-2 rounded-md text-sm"
         >
-          <option>All Orders</option>
-          <option>Processing</option>
-          <option>Completed</option>
-          <option>Cancelled</option>
+          <option value="All Orders">All Orders</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
       <div className="space-y-6">
-        {orders.length === 0 ? (
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : orders.length === 0 ? (
           <p>No orders found.</p>
         ) : (
-          sortOrdersByStatus(orders, filter).map((order) => (
+          sortOrdersByStatus(orders, filter).map((order: any) => (
             <OrderCard
-              key={order.id}
+              key={order.orderId}
               order={order}
               onStatusChange={handleStatusChange}
             />
