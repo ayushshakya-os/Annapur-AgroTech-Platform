@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 import type { Bid, Product } from "../../../lib/types/type";
+import { useAcceptBid } from "@/hooks/api/Bidding/Farmer/useAcceptBid";
+import { useRejectBid } from "@/hooks/api/Bidding/Farmer/useRejectBid";
+import { useCounterBid } from "@/hooks/api/Bidding/Farmer/useCounterBid";
+import { showToast } from "../Toasts/toast";
 
 const tabs = [
   { key: "pending", label: "Pending" },
@@ -17,21 +21,20 @@ export default function BiddingSection({
   bidsByProduct,
   selectedProductId,
   setSelectedProductId,
-  onAccept,
-  onReject,
-  onCounter,
 }: {
   products: Product[];
   bidsByProduct: Record<string, Bid[]>;
   selectedProductId: string;
   setSelectedProductId: (id: string) => void;
-  onAccept: (bidId: string) => void;
-  onReject: (bidId: string) => void;
-  onCounter: (bidId: string, price: number) => void;
 }) {
   const [active, setActive] = useState<TabKey>("pending");
   const [counterFor, setCounterFor] = useState<string | null>(null);
   const [counterValue, setCounterValue] = useState<number | "">("");
+
+  // ⬇️ Initialize hooks
+  const acceptBid = useAcceptBid();
+  const rejectBid = useRejectBid();
+  const counterBid = useCounterBid();
 
   const productOptions = useMemo(
     () => [{ _id: "all", name: "All Products" }, ...products],
@@ -53,6 +56,43 @@ export default function BiddingSection({
           new Date(a.createdAt || 0).getTime()
       );
   }, [products, bidsByProduct, selectedProductId, active]);
+
+  // ⬇️ Handlers integrated with hooks
+  const handleAccept = async (bidId: string) => {
+    try {
+      await acceptBid.mutateAsync(bidId);
+      showToast("success", "Bid accepted successfully!");
+    } catch (err: any) {
+      showToast(
+        "error",
+        err?.response?.data?.message || "Failed to accept bid"
+      );
+    }
+  };
+
+  const handleReject = async (bidId: string) => {
+    try {
+      await rejectBid.mutateAsync(bidId);
+      showToast("success", "Bid rejected successfully!");
+    } catch (err: any) {
+      showToast(
+        "error",
+        err?.response?.data?.message || "Failed to reject bid"
+      );
+    }
+  };
+
+  const handleCounter = async (bidId: string, price: number) => {
+    try {
+      await counterBid.mutateAsync({ bidId, offeredPrice: price });
+      showToast("success", "Counter offer sent!");
+    } catch (err: any) {
+      showToast(
+        "error",
+        err?.response?.data?.message || "Failed to send counter offer"
+      );
+    }
+  };
 
   return (
     <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
@@ -133,10 +173,11 @@ export default function BiddingSection({
               {active === "pending" && (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => onAccept(b._id)}
-                    className="rounded-lg bg-[#88B04B] px-3 py-2 text-white hover:bg-emerald-600"
+                    onClick={() => handleAccept(b._id)}
+                    disabled={acceptBid.isPending}
+                    className="rounded-lg bg-[#88B04B] px-3 py-2 text-white hover:bg-emerald-600 disabled:opacity-50"
                   >
-                    Accept
+                    {acceptBid.isPending ? "Accepting..." : "Accept"}
                   </button>
                   <button
                     onClick={() => setCounterFor(b._id)}
@@ -144,12 +185,13 @@ export default function BiddingSection({
                   >
                     Counter
                   </button>
-                  <button
-                    onClick={() => onReject(b._id)}
-                    className="rounded-lg border border-rose-200 px-3 py-2 text-rose-600 hover:bg-rose-50"
+                  {/* <button
+                    onClick={() => handleReject(b._id)}
+                    disabled={rejectBid.isPending}
+                    className="rounded-lg border border-rose-200 px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
                   >
-                    Reject
-                  </button>
+                    {rejectBid.isPending ? "Rejecting..." : "Reject"}
+                  </button> */}
                 </div>
               )}
 
@@ -214,18 +256,20 @@ export default function BiddingSection({
                       </button>
                       <button
                         disabled={
-                          counterValue === "" || Number(counterValue) <= 0
+                          counterValue === "" ||
+                          Number(counterValue) <= 0 ||
+                          counterBid.isPending
                         }
                         onClick={() => {
                           if (counterValue !== "" && Number(counterValue) > 0) {
-                            onCounter(b._id, Number(counterValue));
+                            handleCounter(b._id, Number(counterValue));
                             setCounterFor(null);
                             setCounterValue("");
                           }
                         }}
-                        className="rounded-lg bg-[#88B04B] px-4 py-2 text-white hover:bg-[#7a9e44] "
+                        className="rounded-lg bg-[#88B04B] px-4 py-2 text-white hover:bg-[#7a9e44] disabled:opacity-50"
                       >
-                        Send Counter
+                        {counterBid.isPending ? "Sending..." : "Send Counter"}
                       </button>
                     </div>
                   </div>
