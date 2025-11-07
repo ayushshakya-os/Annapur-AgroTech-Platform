@@ -12,6 +12,7 @@ export const CheckoutFormSchema = z
     city: z.string().optional(),
     state: z.string().optional(),
     selectedAddressId: z.string().optional(),
+    landmark: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.selectedAddressId === "new") {

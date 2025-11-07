@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import HeaderText from "@/components/HeaderText";
 import { Filter } from "@/components/ui/Market/Filter";
 import { SearchBar } from "@/components/ui/Market/SearchBar";
@@ -12,7 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const ITEMS_PER_PAGE = 12;
 const MAX_PRICE = 5000;
 
-export default function Market() {
+function MarketContent() {
   const { data: products = [], isLoading, error } = useAllProducts();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -25,7 +26,6 @@ export default function Market() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: MAX_PRICE });
   const [hasHydrated, setHasHydrated] = useState(false);
 
-  // Pull values from URL on initial mount
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
     const queryVal = searchParams.get("query") || "";
@@ -61,7 +61,6 @@ export default function Market() {
     startIndex + ITEMS_PER_PAGE
   );
 
-  //  Update the URL when filters/query/page change
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("query", query);
@@ -72,7 +71,6 @@ export default function Market() {
     router.push(`?${params.toString()}`);
   }, [query, selectedCategory, currentPage]);
 
-  // Ensure we only render after initial hydration
   if (!hasHydrated) return null;
 
   return (
@@ -145,5 +143,15 @@ export default function Market() {
         </main>
       </div>
     </section>
+  );
+}
+
+export default function Market() {
+  return (
+    <Suspense
+      fallback={<div className="text-center py-10">Loading products...</div>}
+    >
+      <MarketContent />
+    </Suspense>
   );
 }
