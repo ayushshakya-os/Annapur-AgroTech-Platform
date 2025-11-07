@@ -3,7 +3,7 @@ import AxiosWrapper from "../AxiosWrapper";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export const fetchCart = async (userId: string) => {
-  const res = await AxiosWrapper.get(`${API_URL}/cart/${userId}`, {
+  const res = await AxiosWrapper.get(`${API_URL}/api/cart/${userId}`, {
     withCredentials: true,
   });
   return res.data.cart;
@@ -28,7 +28,7 @@ export const updateCartItemApi = async (
   quantity: number
 ) => {
   const res = await AxiosWrapper.put(
-    `${API_URL}/cart/${userId}/update/${productId}`,
+    `${API_URL}/api/cart/${userId}/update/${productId}`,
     { quantity },
     { withCredentials: true }
   );
@@ -37,14 +37,14 @@ export const updateCartItemApi = async (
 
 export const removeFromCartApi = async (userId: string, productId: string) => {
   const res = await AxiosWrapper.delete(
-    `${API_URL}/cart/${userId}/remove/${productId}`,
+    `${API_URL}/api/cart/${userId}/remove/${productId}`,
     { withCredentials: true }
   );
   return res.data.cart;
 };
 
 export const clearCartApi = async (userId: string) => {
-  const res = await AxiosWrapper.delete(`${API_URL}/cart/${userId}/clear`, {
+  const res = await AxiosWrapper.delete(`${API_URL}/api/cart/${userId}/clear`, {
     withCredentials: true,
   });
   return res.data.cart;
