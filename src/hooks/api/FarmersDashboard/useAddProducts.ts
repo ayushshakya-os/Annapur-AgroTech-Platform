@@ -55,7 +55,7 @@ export const useAddProduct = () => {
       };
 
       const { data } = await AxiosWrapper.post<AddProductResponse>(
-        "/products/addproduct",
+        "/api/products/addproduct",
         payload
       );
 

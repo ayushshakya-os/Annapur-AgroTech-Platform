@@ -15,7 +15,7 @@ export const addToCartApi = async (
   quantity: number
 ) => {
   const res = await AxiosWrapper.post(
-    `${API_URL}/cart/${userId}/add`,
+    `${API_URL}/api/cart/${userId}/add`,
     { productId, quantity },
     { withCredentials: true }
   );

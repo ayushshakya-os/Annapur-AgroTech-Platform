@@ -52,7 +52,7 @@ export const useGetMyBids = (
       if (params?.sort) search.set("sort", params.sort);
 
       const queryString = search.toString();
-      const url = `/bids/me${queryString ? `?${queryString}` : ""}`;
+      const url = `/api/bids/me${queryString ? `?${queryString}` : ""}`;
 
       const { data } = await AxiosWrapper.get<GetBidsResponse>(url);
       return data;

@@ -14,7 +14,7 @@ export function useCounterBid() {
 
   return useMutation({
     mutationFn: async ({ bidId, offeredPrice }: CounterBidPayload) => {
-      const res = await axiosWrapper.put(`/bids/${bidId}/counter`, {
+      const res = await axiosWrapper.put(`/api/bids/${bidId}/counter`, {
         offeredPrice,
       });
       return res.data as { success: boolean; bid: Bid };

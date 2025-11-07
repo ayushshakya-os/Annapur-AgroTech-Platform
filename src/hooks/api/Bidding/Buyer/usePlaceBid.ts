@@ -17,7 +17,7 @@ export const usePlaceBid = (options?: { productId?: string }) => {
   return useMutation({
     mutationFn: async (payload: PlaceBidPayload) => {
       const { data } = await AxiosWrapper.post<PlaceBidResponse>(
-        `/bids/place`,
+        `/api/bids/place`,
         payload
       );
       return data;

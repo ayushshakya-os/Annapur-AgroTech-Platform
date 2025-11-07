@@ -15,7 +15,7 @@ export const useGetBidsForProduct = (
     queryKey: ["bids", String(productId)],
     queryFn: async () => {
       const { data } = await AxiosWrapper.get<GetBidsResponse>(
-        `/bids/product/${productId}`
+        `/api/bids/product/${productId}`
       );
       return data;
     },

@@ -54,7 +54,7 @@ export function useGetFarmersProducts(
     queryKey: ["farmersProducts", params],
     queryFn: async () => {
       const { data } = await AxiosWrapper.get<ApiResponse>(
-        "/products/myproducts",
+        "/api/products/myproducts",
         {
           params,
         }

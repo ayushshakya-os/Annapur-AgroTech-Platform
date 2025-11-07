@@ -9,7 +9,7 @@ type AddSearchHistoryPayload = {
 export const useAddSearchHistory = () => {
   return useMutation({
     mutationFn: async (payload: AddSearchHistoryPayload) => {
-      const { data } = await AxiosWrapper.post(`/searches/search`, {
+      const { data } = await AxiosWrapper.post(`/api/searches/search`, {
         query: payload.query,
       });
       return data;

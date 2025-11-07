@@ -18,7 +18,7 @@ export const useEditProfile = () => {
   return useMutation({
     mutationFn: async (payload: EditProfilePayload) => {
       const { id, ...body } = payload;
-      const { data } = await AxiosWrapper.put(`/users/${id}`, body);
+      const { data } = await AxiosWrapper.put(`/api/users/${id}`, body);
       return data.user; // Updated user
     },
     onSuccess: () => {

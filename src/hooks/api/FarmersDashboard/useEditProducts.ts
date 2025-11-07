@@ -41,7 +41,7 @@ export const useUpdateProduct = () => {
       }
 
       const { data } = await AxiosWrapper.put<ApiResponse>(
-        `/products/${id}`,
+        `/api/products/${id}`,
         body
       );
 

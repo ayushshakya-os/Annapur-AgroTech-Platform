@@ -39,7 +39,7 @@ export function useSignup() {
     try {
       const guestAuth = getStoredAuth();
       const res = await AxiosWrapper.post(
-        "/auth/register",
+        "/api/auth/register",
         data,
         guestAuth?.token
           ? { headers: { Authorization: `Bearer ${guestAuth.token}` } }

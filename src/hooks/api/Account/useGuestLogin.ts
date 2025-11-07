@@ -15,7 +15,7 @@ export function useGuestLogin() {
     setLoading(true);
     setError(null);
     try {
-      const res = await AxiosWrapper.post("/auth/guest-login");
+      const res = await AxiosWrapper.post("/api/auth/guest-login");
       const user: AuthUser = {
         email: res.data.user.email,
         fullName: res.data.user.fullName,

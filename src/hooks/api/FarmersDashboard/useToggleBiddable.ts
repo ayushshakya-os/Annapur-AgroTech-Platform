@@ -28,9 +28,12 @@ export function useToggleBiddable() {
 
   return useMutation<Product, Error, ToggleVars, { prev?: MyProductsCache }>({
     mutationFn: async ({ id, isBiddable }) => {
-      const { data } = await AxiosWrapper.put<ApiResponse>(`/products/${id}`, {
-        isBiddable,
-      });
+      const { data } = await AxiosWrapper.put<ApiResponse>(
+        `/api/products/${id}`,
+        {
+          isBiddable,
+        }
+      );
       if (!data || data.success !== true) {
         const msg =
           (data as any)?.message ||

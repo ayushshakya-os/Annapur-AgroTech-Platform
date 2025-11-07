@@ -19,7 +19,10 @@ interface CreateOrderPayload {
 export function useCreateOrder(userId: string) {
   return useMutation({
     mutationFn: async (payload: CreateOrderPayload) => {
-      const res = await AxiosWrapper.post(`/orders/${userId}/create`, payload);
+      const res = await AxiosWrapper.post(
+        `/api/orders/${userId}/create`,
+        payload
+      );
       return res.data;
     },
   });

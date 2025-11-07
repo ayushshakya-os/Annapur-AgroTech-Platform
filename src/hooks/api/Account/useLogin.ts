@@ -16,7 +16,10 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      const res = await AxiosWrapper.post("/auth/login", { email, password });
+      const res = await AxiosWrapper.post("/api/auth/login", {
+        email,
+        password,
+      });
       const user: AuthUser = {
         id: res.data.user.id,
         email: res.data.user.email,

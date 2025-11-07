@@ -28,7 +28,7 @@ export const useAddToCart = () => {
       productId: string;
       quantity: number;
     }) => {
-      const { data } = await AxiosWrapper.post(`/cart/${userId}/add`, {
+      const { data } = await AxiosWrapper.post(`/api/cart/${userId}/add`, {
         productId,
         quantity,
       });
