@@ -1,5 +1,12 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import AxiosWrapper from "../api/AxiosWrapper";
+import {
+  AUTH_UPDATE_EVENT,
+  emitAuthUpdate,
+  getStoredAuth,
+} from "@/lib/utils/authEvent";
 
 interface AuthUser {
   id?: string;
@@ -29,51 +36,63 @@ interface LoginData {
   password: string;
 }
 
-const getStoredAuth = (): AuthStorage | null => {
-  if (typeof window === "undefined") return null; // Ensure this runs only on client
-
-  const auth = localStorage.getItem("auth");
-  if (auth) {
-    try {
-      return JSON.parse(auth);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-};
-
 export function useAuth() {
-  const [auth, setAuth] = useState<AuthStorage | null>(getStoredAuth());
+  const [auth, setAuth] = useState<AuthStorage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize from localStorage on mount
+  useEffect(() => {
+    setAuth(getStoredAuth<AuthUser>());
+  }, []);
+
+  // Subscribe to same-tab custom auth updates and cross-tab storage updates
+  useEffect(() => {
+    const handleAuthUpdate = () => {
+      setAuth(getStoredAuth<AuthUser>());
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "auth") {
+        handleAuthUpdate();
+      }
+    };
+
+    window.addEventListener(
+      AUTH_UPDATE_EVENT,
+      handleAuthUpdate as EventListener
+    );
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener(
+        AUTH_UPDATE_EVENT,
+        handleAuthUpdate as EventListener
+      );
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   // Save auth object to localStorage and state
   const saveAuth = (token: string, user: AuthUser) => {
     const authObj: AuthStorage = { token, user };
     localStorage.setItem("auth", JSON.stringify(authObj));
     setAuth(authObj);
+    emitAuthUpdate({ token, user });
   };
 
-  // Register user (optionally with guest token)
+  // Register user (kept as-is)
   const register = async (data: RegisterData) => {
     setLoading(true);
     setError(null);
     try {
-      const guestAuth = getStoredAuth();
-      const res = await AxiosWrapper.post(
-        "/auth/register",
-        data,
-        guestAuth?.token
-          ? { headers: { Authorization: `Bearer ${guestAuth.token}` } }
-          : undefined
-      );
-      // Backend may not send phone in response, so use input value
+      const res = await AxiosWrapper.post("/auth/register", data);
       const user: AuthUser = {
         id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
         phone: res.data.user.phone,
+        role: res.data.user.role,
       };
       saveAuth(res.data.token, user);
       return { ...res.data };
@@ -85,13 +104,14 @@ export function useAuth() {
     }
   };
 
-  // Login user
+  // Login user (kept; may not be used if you use the separate useLogin)
   const login = async (data: LoginData) => {
     setLoading(true);
     setError(null);
     try {
       const res = await AxiosWrapper.post("/auth/login", data);
       const user: AuthUser = {
+        id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
         role: res.data.user.role,
@@ -106,13 +126,14 @@ export function useAuth() {
     }
   };
 
-  // Guest login
+  // Guest login (kept)
   const guestLogin = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await AxiosWrapper.post("/auth/guest-login");
       const user: AuthUser = {
+        id: res.data.user.id,
         email: res.data.user.email,
         fullName: res.data.user.fullName,
         role: res.data.user.role,
@@ -131,10 +152,12 @@ export function useAuth() {
   const logout = () => {
     localStorage.removeItem("auth");
     setAuth(null);
+    emitAuthUpdate({ token: null, user: null });
   };
 
   const handleGuestAccess = (redirectUrl: string) => {
-    if (!auth || auth.user.role === "guest") {
+    const current = getStoredAuth<AuthUser>();
+    if (!current || current.user.role === "guest") {
       if (typeof window !== "undefined") {
         window.location.href = redirectUrl;
       }

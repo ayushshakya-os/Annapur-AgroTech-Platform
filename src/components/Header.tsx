@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 import {
   FaPhoneAlt,
   FaFacebook,
@@ -23,14 +22,13 @@ export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [auth, setAuth] = useState<any>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
 
-  // ✅ fetch cart based on logged-in user
-  const { user } = useAuth();
-  const userId = user?.id || ""; // adjust based on how your auth stores user
+  // Use shared auth state instead of managing localStorage here
+  const { user, isAuthenticated, isGuest, logout } = useAuth();
+  const userId = user?.id || "";
+
+  // Fetch cart for current user
   const { data } = useGetCart(userId);
-
   const cart = data?.items ? data : data?.cart;
 
   const badgeCount =
@@ -39,26 +37,15 @@ export default function Header() {
       0
     ) || 0;
 
-  // Check if the component is mounted on the client side
   useEffect(() => {
     setIsClient(true);
-    const storedAuth = localStorage.getItem("auth");
-    if (storedAuth) {
-      const parsedAuth = JSON.parse(storedAuth);
-      setAuth(parsedAuth);
-    }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    setAuth(null);
-    window.location.href = "/";
-  };
-
-  // Disable body scroll when the mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
+
+  const showUserDropdown = isAuthenticated && !isGuest;
 
   return (
     <header className="w-full fixed  h-[115px] top-0 left-0 z-50 bg-white">
@@ -152,7 +139,7 @@ export default function Header() {
           <div className="hidden sm:block relative">
             <Link href="/cart">
               <FaCartShopping className="text-2xl text-[#88B04B] sm:block hidden" />
-              {isClient && auth && badgeCount > 0 && (
+              {isClient && isAuthenticated && badgeCount > 0 && (
                 <span className="absolute -top-2 -right-3 bg-[#151515]  text-[#88B04B] text-[14px] font-bold w-5 h-5 p-0 flex items-center justify-center rounded-full">
                   {badgeCount}
                 </span>
@@ -160,12 +147,11 @@ export default function Header() {
             </Link>
           </div>
 
-          {isClient && auth && !auth.isGuest ? (
+          {showUserDropdown ? (
             <div className="hidden sm:block relative">
               <UserDropdown />
             </div>
           ) : (
-            // Show Create Account link for guests
             <div className="hidden sm:block">
               <Link href="/create-account">
                 <FaUser className="text-2xl text-[#88B04B]" />
@@ -179,7 +165,7 @@ export default function Header() {
           {/* Mobile Cart Icon */}
           <Link href="/cart" className="relative">
             <FaCartShopping className="text-2xl text-[#88B04B]" />
-            {isClient && auth && badgeCount > 0 && (
+            {isClient && isAuthenticated && badgeCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-[#151515] text-[#88B04B] text-[14px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
                 {badgeCount}
               </span>
@@ -187,15 +173,12 @@ export default function Header() {
           </Link>
 
           {/* Mobile User Icon */}
-          {isClient && auth && !auth.isGuest ? (
+          {showUserDropdown ? (
             <UserDropdown />
           ) : (
-            // Show Create Account link for guests
-            <div className="hidden sm:block">
-              <Link href="/create-account">
-                <FaUser className="text-2xl text-[#88B04B]" />
-              </Link>
-            </div>
+            <Link href="/create-account">
+              <FaUser className="text-2xl text-[#88B04B]" />
+            </Link>
           )}
 
           <button onClick={() => setIsOpen(!isOpen)}>
@@ -272,7 +255,7 @@ export default function Header() {
                 Market
               </Link>
               <Link
-                href="/"
+                href="/bidding-portal"
                 className="hover:underline hover:text-[#38B6FF] transform ease-in-out duration-200"
                 onClick={() => setIsOpen(false)}
               >
@@ -293,13 +276,6 @@ export default function Header() {
                 Contact Us
               </Link>
             </div>
-
-            {/* <Link href="/create-account">
-              <Button
-                text="Create Account"
-                className="text-white bg-gradient-to-r from-[#88B04B] to-[#4BAF47] opacity-80 hover:opacity-100 rounded-md px-4 py-2"
-              />
-            </Link> */}
           </div>
         </div>
       </nav>
