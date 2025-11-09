@@ -6,6 +6,13 @@ import clsx from "clsx";
 import type { Bid, BidStatus } from "./../../../lib/types/type";
 import { useGetMyBids } from "@/hooks/api/Bidding/useGetMyBids";
 
+// Hooks for actions (adjust import paths if your hooks live elsewhere)
+import { useAcceptBidBuyer } from "@/hooks/api/Bidding/Buyer/useAcceptBid";
+import {
+  useCounterBidBuyer,
+  useRejectBidBuyer,
+} from "@/hooks/api/Bidding/Buyer/useCounterReject";
+
 /**
  * Helper uid (kept for compatibility with demo seeds if needed)
  */
@@ -19,27 +26,22 @@ const uid = (p = "id") =>
  * "Objects are not valid as a React child" runtime errors.
  */
 const getProductDisplay = (bid: any) => {
-  // If there's an explicit productName field use it
   if (bid.productName) return String(bid.productName);
-  // If productId is an object with a name, use that
   if (bid.productId && typeof bid.productId === "object") {
     if ("name" in bid.productId && bid.productId.name)
       return String(bid.productId.name);
     if ("_id" in bid.productId) return String(bid.productId._id);
-    // fallback to JSON string (should rarely happen)
     try {
       return JSON.stringify(bid.productId);
     } catch {
       return String(bid.productId);
     }
   }
-  // fallback to string id
   return String(bid.productId ?? uid("prod"));
 };
 
 export default function BiddingList() {
   // Fetch authenticated user's bids (assumes this is a buyer dashboard).
-  // Adjust role if this component is used for farmers.
   const { data, isLoading, isError, error, refetch } = useGetMyBids(
     {
       role: "buyer",
@@ -51,6 +53,16 @@ export default function BiddingList() {
       staleTime: 5_000,
     }
   );
+
+  // Action hooks — only grab mutate functions (do NOT read isLoading from the hook)
+  const { mutate: acceptMutate } = useAcceptBidBuyer();
+  const { mutate: counterMutate } = useCounterBidBuyer();
+  const { mutate: rejectMutate } = useRejectBidBuyer();
+
+  // Local loading flags (managed here so we don't depend on hook's isLoading property)
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isCountering, setIsCountering] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   // Local state to allow optimistic UI interactions and editing modal
   const [bids, setBids] = useState<Bid[]>([]);
@@ -106,11 +118,11 @@ export default function BiddingList() {
     [bids, activeTab]
   );
 
-  // Handlers — UI only for now.
-  // Replace with real mutations (useMutation) to:
-  // - POST /bids/place  OR POST /bids/:id/accept-buyer etc.
+  // Handlers — now wired to real mutations (destructured mutate functions).
+  // We manage local loading flags here and pass callbacks to mutate to clear flags.
+
   function updateOffer(bidId: string, offeredPrice: number) {
-    // optimistic update locally
+    // Local optimistic update for immediate feedback
     setBids((prev) =>
       prev.map((b) =>
         b._id === bidId
@@ -123,15 +135,55 @@ export default function BiddingList() {
       )
     );
 
-    // TODO: call API to update/create bid and refetch or update cache
+    setIsCountering(true);
+    counterMutate(
+      { bidId, offeredPrice },
+      {
+        onError: (err) => {
+          console.error("Counter failed", err);
+          void refetch();
+        },
+        onSettled: () => {
+          setIsCountering(false);
+        },
+      }
+    );
   }
 
   function acceptCounter(bidId: string) {
+    // Local optimistic update
     setBids((prev) =>
       prev.map((b) => (b._id === bidId ? { ...b, status: "accepted" } : b))
     );
 
-    // TODO: call POST /bids/:id/accept-buyer and refetch() or update cache
+    setIsAccepting(true);
+    acceptMutate(bidId, {
+      onError: (err) => {
+        console.error("Accept failed", err);
+        void refetch();
+      },
+      onSettled: () => {
+        setIsAccepting(false);
+      },
+    });
+  }
+
+  function rejectBid(bidId: string) {
+    // Local optimistic update
+    setBids((prev) =>
+      prev.map((b) => (b._id === bidId ? { ...b, status: "rejected" } : b))
+    );
+
+    setIsRejecting(true);
+    rejectMutate(bidId, {
+      onError: (err) => {
+        console.error("Reject failed", err);
+        void refetch();
+      },
+      onSettled: () => {
+        setIsRejecting(false);
+      },
+    });
   }
 
   function openEdit(bid: Bid) {
@@ -256,9 +308,10 @@ export default function BiddingList() {
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Actions: Update | Accept | Reject placed next to each other */}
                 <div className="flex gap-2">
-                  {b.status === "pending" && (
+                  {/* Update offer available for pending and countered states */}
+                  {(b.status === "pending" || b.status === "countered") && (
                     <button
                       onClick={() => openEdit(b)}
                       className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50"
@@ -268,25 +321,31 @@ export default function BiddingList() {
                     </button>
                   )}
 
+                  {/* Accept is only applicable when farmer has countered (buyer can accept) */}
                   {b.status === "countered" && (
-                    <>
-                      <button
-                        onClick={() => acceptCounter(b._id)}
-                        className="inline-flex items-center gap-2 rounded-lg bg-[#88B04B] px-3 py-2 text-white hover:bg-[#88B04B]/80"
-                        title="Accept farmer's counter-offer"
-                      >
-                        <FiCheck /> Accept Counter
-                      </button>
-                      <button
-                        onClick={() => openEdit(b)}
-                        className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50"
-                        title="Send a new offer"
-                      >
-                        <FiEdit /> New Offer
-                      </button>
-                    </>
+                    <button
+                      onClick={() => acceptCounter(b._id)}
+                      disabled={isAccepting}
+                      className="inline-flex items-center gap-2 rounded-lg bg-[#88B04B] px-3 py-2 text-white hover:bg-[#88B04B]/80 disabled:opacity-60"
+                      title="Accept farmer's counter-offer"
+                    >
+                      <FiCheck /> {isAccepting ? "Accepting..." : "Accept"}
+                    </button>
                   )}
 
+                  {/* Reject available when bid is not already finalized */}
+                  {b.status !== "accepted" && b.status !== "rejected" && (
+                    <button
+                      onClick={() => rejectBid(b._id)}
+                      disabled={isRejecting}
+                      className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:opacity-60"
+                      title="Reject this offer"
+                    >
+                      <FiX /> {isRejecting ? "Rejecting..." : "Reject"}
+                    </button>
+                  )}
+
+                  {/* For accepted/rejected show closed button */}
                   {(b.status === "accepted" || b.status === "rejected") && (
                     <button
                       disabled
@@ -348,17 +407,19 @@ export default function BiddingList() {
                 Cancel
               </button>
               <button
-                disabled={offerValue === "" || Number(offerValue) <= 0}
+                disabled={
+                  offerValue === "" || Number(offerValue) <= 0 || isCountering
+                }
                 onClick={() => {
                   if (offerValue !== "" && Number(offerValue) > 0) {
-                    // Real app: call the API (e.g., POST /bids/place or PUT /bids/:id) and then refetch()
+                    // Call buyer counter mutation
                     updateOffer(editingBid._id, Number(offerValue));
                     closeEdit();
                   }
                 }}
                 className="rounded-lg bg-[#88B04B] px-4 py-2 text-white hover:bg-emerald-600 disabled:opacity-60"
               >
-                Submit Offer
+                {isCountering ? "Submitting..." : "Submit Offer"}
               </button>
             </div>
           </div>
