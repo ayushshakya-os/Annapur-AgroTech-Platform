@@ -23,7 +23,7 @@ export const useUpdateAddress = () => {
       ...fields
     }: UpdateAddressPayload) => {
       const { data } = await AxiosWrapper.put(
-        `/users/${userId}/addresses/${addressId}`,
+        `/api/users/${userId}/addresses/${addressId}`,
         fields
       );
       return data.addresses;

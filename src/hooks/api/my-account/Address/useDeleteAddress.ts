@@ -14,7 +14,7 @@ export const useDeleteAddress = () => {
   return useMutation({
     mutationFn: async ({ userId, addressId }: DeleteAddressPayload) => {
       const { data } = await AxiosWrapper.delete(
-        `/users/${userId}/addresses/${addressId}`
+        `/api/users/${userId}/addresses/${addressId}`
       );
       return data.addresses;
     },

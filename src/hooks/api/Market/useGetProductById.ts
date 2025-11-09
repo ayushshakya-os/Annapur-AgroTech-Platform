@@ -8,7 +8,9 @@ export const useGetProductById = (id: string) => {
   return useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
-      const res = await AxiosWrapper.get(`${API_BASE}/products/product/${id}`);
+      const res = await AxiosWrapper.get(
+        `${API_BASE}/api/products/product/${id}`
+      );
       return res.data.product; // adjust if API returns differently
     },
     enabled: !!id, // don’t run until id exists

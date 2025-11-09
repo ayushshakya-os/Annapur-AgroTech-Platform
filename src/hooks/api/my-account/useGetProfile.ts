@@ -8,7 +8,7 @@ export const useGetProfile = () => {
   return useQuery({
     queryKey: ["userProfile"],
     queryFn: async () => {
-      const { data } = await AxiosWrapper.get("/users/profile");
+      const { data } = await AxiosWrapper.get("/api/users/profile");
       return data.user; // { ...user fields }
     },
   });

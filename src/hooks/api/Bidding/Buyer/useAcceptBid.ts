@@ -9,7 +9,7 @@ export function useAcceptBidBuyer() {
 
   return useMutation({
     mutationFn: async (bidId: string) => {
-      const res = await axiosWrapper.put(`/bids/${bidId}/accept-buyer`);
+      const res = await axiosWrapper.put(`/api/bids/${bidId}/accept-buyer`);
       return res.data as { success: boolean; bid: Bid };
     },
 
