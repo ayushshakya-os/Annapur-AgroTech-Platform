@@ -7,7 +7,9 @@ export const useAllProducts = () => {
   return useQuery({
     queryKey: ["all-products"],
     queryFn: async () => {
-      const res = await axiosWrapper.get(`${API_BASE}/products/allproducts`);
+      const res = await axiosWrapper.get(
+        `${API_BASE}/api/products/allproducts`
+      );
       return res.data.products; // adjust based on backend response
     },
   });

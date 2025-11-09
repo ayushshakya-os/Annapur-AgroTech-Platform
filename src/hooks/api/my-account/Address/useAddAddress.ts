@@ -19,7 +19,7 @@ export const useAddAddress = () => {
     mutationFn: async (payload: AddAddressPayload) => {
       const { userId, ...addressFields } = payload;
       const { data } = await AxiosWrapper.post(
-        `/users/${userId}/addresses`,
+        `/api/users/${userId}/addresses`,
         addressFields
       );
       return data.addresses;

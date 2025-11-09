@@ -4,7 +4,7 @@ export function useUserOrders(userId: string) {
   return useQuery({
     queryKey: ["orders", userId],
     queryFn: async () => {
-      const res = await AxiosWrapper.get(`/orders/user/${userId}`);
+      const res = await AxiosWrapper.get(`/api/orders/user/${userId}`);
       return res.data.orders;
     },
     enabled: !!userId,

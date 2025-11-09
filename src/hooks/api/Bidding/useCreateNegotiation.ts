@@ -12,7 +12,7 @@ export const useCreateNegotiation = () => {
     mutationFn: async (payload: CreateNegotiationPayload) => {
       // Adjust path if mounted differently (e.g., /api/negotiations)
       const { data } = await AxiosWrapper.post<CreateNegotiationResponse>(
-        `/negotiations`,
+        `/api/negotiations`,
         payload
       );
       return data;

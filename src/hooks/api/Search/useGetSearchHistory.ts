@@ -6,7 +6,7 @@ export const useGetSearchHistory = () => {
   return useQuery({
     queryKey: ["searchHistory"],
     queryFn: async () => {
-      const { data } = await AxiosWrapper.get(`/searches`);
+      const { data } = await AxiosWrapper.get(`/api/searches`);
       return data;
     },
   });

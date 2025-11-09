@@ -15,7 +15,7 @@ export const useAddToCart = () => {
   return useMutation({
     mutationFn: async (payload: AddToCartPayload) => {
       const { data } = await AxiosWrapper.post(
-        `/cart/${payload.userId}/add`,
+        `/api/cart/${payload.userId}/add`,
         payload
       );
       return data;

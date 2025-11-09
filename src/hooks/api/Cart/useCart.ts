@@ -9,7 +9,7 @@ export const useGetCart = (userId: string) => {
     queryKey: ["cart", userId],
     queryFn: async () => {
       if (!userId) return null;
-      const { data } = await AxiosWrapper.get(`/cart/${userId}`);
+      const { data } = await AxiosWrapper.get(`/api/cart/${userId}`);
       return data.cart;
     },
     enabled: !!userId, // only fetch if logged in
@@ -28,7 +28,7 @@ export const useAddToCart = () => {
       productId: string;
       quantity: number;
     }) => {
-      const { data } = await AxiosWrapper.post(`/cart/${userId}/add`, {
+      const { data } = await AxiosWrapper.post(`/api/cart/${userId}/add`, {
         productId,
         quantity,
       });
@@ -53,7 +53,7 @@ export const useUpdateCartItem = () => {
       quantity: number;
     }) => {
       const { data } = await AxiosWrapper.put(
-        `/cart/${userId}/update/${productId}`,
+        `/api/cart/${userId}/update/${productId}`,
         { quantity }
       );
       return data.cart;
@@ -75,7 +75,7 @@ export const useRemoveFromCart = () => {
       productId: string;
     }) => {
       const { data } = await AxiosWrapper.delete(
-        `/cart/${userId}/remove/${productId}`
+        `/api/cart/${userId}/remove/${productId}`
       );
       return data.cart;
     },
@@ -89,7 +89,7 @@ export const useClearCart = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { data } = await AxiosWrapper.delete(`/cart/${userId}/clear`);
+      const { data } = await AxiosWrapper.delete(`/api/cart/${userId}/clear`);
       return data.cart;
     },
     onSuccess: (_, userId) => {
